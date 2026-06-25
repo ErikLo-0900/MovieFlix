@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieFlix - Tráilers de Películas</title>
+    <!-- Google Fonts: Outfit (headings) & Inter (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons for premium look -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ==================== PANTALLA SELECCIÓN DE PERFIL ==================== -->
+    <div id="profile-selector-screen" class="profile-screen active">
+        <div class="profile-container">
+            <h1 class="profile-title">¿Quién está viendo?</h1>
+            <div class="profiles-grid" id="profiles-grid">
+                <!-- Se renderizan dinámicamente los perfiles aquí -->
+            </div>
+            <button id="manage-profiles-btn" class="profile-btn secondary">Administrar perfiles</button>
+        </div>
+    </div>
+
+    <!-- ==================== APLICACIÓN PRINCIPAL (DASHBOARD) ==================== -->
+    <div id="main-dashboard" class="dashboard-screen hidden">
+        <!-- BARRA DE NAVEGACIÓN -->
+        <header class="navbar" id="navbar">
+            <div class="navbar-left">
+                <button class="hamburger-btn" id="hamburger-menu-btn" title="Menú de navegación">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="logo">Movie<span>Flix</span></div>
+                <nav class="nav-links">
+                    <a href="#" class="nav-link active" data-target="home">Inicio</a>
+                    <a href="#" class="nav-link" data-target="series">Series</a>
+                    <a href="#" class="nav-link" data-target="movies">Películas</a>
+                    <a href="#" class="nav-link" data-target="my-list">Mi Lista</a>
+                    <a href="#" class="nav-link" id="nav-add-video">Añadir Contenido</a>
+                </nav>
+            </div>
+            <div class="navbar-right">
+                <!-- Buscador expandible -->
+                <div class="search-box" id="search-box">
+                    <button class="search-btn" id="search-toggle-btn">
+                        <i data-lucide="search"></i>
+                    </button>
+                    <input type="text" id="search-input" placeholder="Títulos, directores, géneros..." autocomplete="off">
+                    <button class="clear-search hidden" id="clear-search-btn">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <!-- Menú de Perfil -->
+                <div class="profile-menu-container">
+                    <div class="current-profile-trigger" id="current-profile-trigger">
+                        <div class="nav-avatar" id="nav-profile-avatar"></div>
+                        <span class="nav-profile-name" id="nav-profile-name">Usuario</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </div>
+                    <!-- Dropdown -->
+                    <div class="profile-dropdown hidden" id="profile-dropdown">
+                        <div class="dropdown-profiles-list" id="dropdown-profiles-list">
+                            <!-- Otros perfiles se renderizan aquí -->
+                        </div>
+                        <hr class="dropdown-divider">
+                        <a href="#" id="dropdown-manage-profiles"><i data-lucide="users"></i> Administrar perfiles</a>
+                        <a href="#" id="dropdown-exit-profile"><i data-lucide="log-out"></i> Cambiar de Perfil</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- HÉROE DE PORTADA (FEATURED MOVIE) -->
+        <section class="hero-banner" id="hero-banner">
+            <div class="hero-overlay"></div>
+            <!-- Video de fondo opcional (silenciado, loop) o Poster de alta calidad -->
+            <div class="hero-bg-container" id="hero-bg-container">
+                <!-- Se inyecta la imagen o video del héroe -->
+            </div>
+            <div class="hero-content">
+                <div class="hero-badge"><i data-lucide="star"></i> Tráiler Destacado</div>
+                <h1 class="hero-title" id="hero-title">Sintel</h1>
+                <p class="hero-description" id="hero-description">Una joven solitaria llamada Sintel rescata y cría a un pequeño dragón, al que llama Scales. Cuando el dragón es secuestrado por una bestia adulta, Sintel se embarca en un viaje épico para salvarlo.</p>
+                <div class="hero-meta">
+                    <span class="meta-item year" id="hero-year">2010</span>
+                    <span class="meta-item age-rating">13+</span>
+                    <span class="meta-item duration" id="hero-duration">15 min</span>
+                    <span class="meta-item category" id="hero-category">Fantasía</span>
+                </div>
+                <div class="hero-buttons">
+                    <button class="btn btn-play" id="hero-play-btn">
+                        <i data-lucide="play"></i> Reproducir
+                    </button>
+                    <button class="btn btn-info" id="hero-info-btn">
+                        <i data-lucide="info"></i> Más Información
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTENEDOR DE FILAS DE PELÍCULAS (CAROUSELS) -->
+        <main class="main-content" id="main-content">
+            <!-- Se inyectan las filas dinámicamente desde app.js -->
+        </main>
+
+        <!-- PIE DE PÁGINA -->
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="#">Preguntas Frecuentes</a>
+                <a href="#">Privacidad</a>
+                <a href="#">Términos de Uso</a>
+                <a href="#">Contacto</a>
+            </div>
+            <p class="footer-text">© 2026 MovieFlix. Todos los derechos de los tráilers pertenecen a sus respectivos autores.</p>
+        </footer>
+    </div>
+
+    <!-- ==================== MODAL DE DETALLES DE LA PELÍCULA ==================== -->
+    <div id="video-details-modal" class="modal hidden">
+        <div class="modal-backdrop" id="details-backdrop"></div>
+        <div class="modal-content-wrapper">
+            <button class="modal-close-btn" id="details-close-btn">
+                <i data-lucide="x"></i>
+            </button>
+            <div class="modal-hero" id="details-hero">
+                <div class="modal-hero-overlay"></div>
+                <div class="modal-hero-content">
+                    <h2 class="modal-title" id="details-title">Título de la Película</h2>
+                    <div class="modal-actions">
+                        <button class="btn btn-play" id="details-play-btn">
+                            <i data-lucide="play"></i> Reproducir
+                        </button>
+                        <button class="btn-round" id="details-favorite-btn" title="Añadir a Mi Lista">
+                            <i data-lucide="plus"></i>
+                        </button>
+                        <button class="btn-round" id="details-edit-btn" title="Editar Película o Serie">
+                            <i data-lucide="edit-3"></i>
+                        </button>
+                        <button class="btn-round" id="details-delete-btn" title="Eliminar Película">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body-container">
+                <div class="modal-details-grid">
+                    <div class="modal-details-left">
+                        <div class="modal-meta">
+                            <span class="meta-item year" id="details-year">2024</span>
+                            <span class="meta-item duration" id="details-duration">2h 15m</span>
+                            <span class="meta-item category" id="details-category">Acción</span>
+                            <span class="match-badge" id="details-match">98% de coincidencia</span>
+                        </div>
+                        <p class="modal-description" id="details-description">Sinopsis de la película...</p>
+                    </div>
+                    <div class="modal-details-right">
+                        <div class="modal-info-tags">
+                            <span class="info-label">Director:</span> <span class="info-val" id="details-author">Director Name</span>
+                        </div>
+                        <div class="modal-info-tags">
+                            <span class="info-label">Reparto:</span> <span class="info-val" id="details-people">Actor 1, Actor 2</span>
+                        </div>
+                        <div class="modal-info-tags">
+                            <span class="info-label">Etiquetas:</span> <span class="info-val" id="details-tags">Tag 1, Tag 2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de Episodios (Solo para Series) -->
+                <div id="modal-series-episodes-section" class="modal-episodes-section hidden">
+                    <div class="episodes-header">
+                        <h3 class="similar-title">Episodios</h3>
+                        <div class="season-selector-container">
+                            <select id="season-selector" class="season-select-dropdown">
+                                <!-- Se llena dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="episodes-list" id="episodes-list">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Sección: Más como este -->
+                <div class="modal-similar-section">
+                    <h3 class="similar-title">Películas similares</h3>
+                    <div class="similar-grid" id="similar-grid">
+                        <!-- Tarjetas de películas recomendadas similares -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL AÑADIR / EDITAR PELÍCULA ==================== -->
+    <div id="add-video-modal" class="modal hidden">
+        <div class="modal-backdrop" id="add-video-backdrop"></div>
+        <div class="modal-content-wrapper form-modal">
+            <button class="modal-close-btn" id="add-video-close-btn">
+                <i data-lucide="x"></i>
+            </button>
+            <h2 class="form-modal-title">Añadir Nueva Película al Catálogo</h2>
+            <form id="add-video-form" class="video-form">
+                <div class="form-group">
+                    <label for="video-title">Título de la Película <span class="required">*</span></label>
+                    <input type="text" id="video-title" placeholder="Ej. El Gran Viaje" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="video-type">Tipo de Contenido <span class="required">*</span></label>
+                        <select id="video-type" required>
+                            <option value="movie">Película</option>
+                            <option value="series">Serie</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="video-category">Género Principal <span class="required">*</span></label>
+                        <select id="video-category" required>
+                            <option value="Accion">Acción y Aventura</option>
+                            <option value="SciFi">Ciencia Ficción y Fantasía</option>
+                            <option value="Drama">Drama y Romance</option>
+                            <option value="Comedia">Comedia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="video-year">Año de Estreno <span class="required">*</span></label>
+                        <input type="number" id="video-year" min="1880" max="2035" placeholder="Ej. 2026" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="video-duration">Duración / Temporadas <span class="required">*</span></label>
+                        <input type="text" id="video-duration" placeholder="Ej. 2h 15m o 3 Temporadas" required>
+                    </div>
+                </div>
+                <!-- Sección para Películas: Tráiler principal -->
+                <div id="form-movie-video-section" class="form-group">
+                    <label>Tráiler (Video) <span class="required">*</span></label>
+                    <div class="input-tabs">
+                        <button type="button" class="tab-btn active" id="tab-video-url">Escribir Ruta/URL</button>
+                        <button type="button" class="tab-btn" id="tab-video-file">Seleccionar Archivo Local</button>
+                    </div>
+                    <div class="tab-content" id="content-video-url">
+                        <input type="text" id="video-url" placeholder="Ej. assets/trailers/video.mp4 o URL de internet">
+                    </div>
+                    <div class="tab-content hidden" id="content-video-file">
+                        <input type="file" id="video-file-input" accept="video/*">
+                        <span class="help-text warning">Nota: Los archivos locales seleccionados se reproducirán en esta sesión, pero no se guardan permanentemente en el navegador por seguridad. Para persistencia, colócalos en la carpeta del proyecto y usa "Escribir Ruta/URL".</span>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DINÁMICA DE TEMPORADAS Y EPISODIOS (SOLO PARA SERIES) -->
+                <div id="form-series-episodes-section" class="form-group hidden">
+                    <label>Temporadas y Capítulos <span class="required">*</span></label>
+                    <div class="seasons-container" id="seasons-container">
+                        <!-- Aquí se inyectan las temporadas y capítulos dinámicamente -->
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-add-season" style="margin-top: 0.5rem; align-self: flex-start; padding: 0.4rem 1rem; font-size: 0.85rem;">
+                        <i data-lucide="plus"></i> Añadir Temporada
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label>Póster / Miniatura</label>
+                    <div class="input-tabs">
+                        <button type="button" class="tab-btn active" id="tab-poster-url">Escribir Ruta/URL</button>
+                        <button type="button" class="tab-btn" id="tab-poster-file">Cargar Imagen Local</button>
+                    </div>
+                    <div class="tab-content" id="content-poster-url">
+                        <input type="text" id="video-poster" placeholder="Ej. assets/posters/poster.jpg o URL de internet">
+                    </div>
+                    <div class="tab-content hidden" id="content-poster-file">
+                        <input type="file" id="poster-file-input" accept="image/*">
+                        <span class="help-text">¡La imagen se cargará y se guardará permanentemente en tu navegador!</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="video-author">Director / Creador</label>
+                        <input type="text" id="video-author" placeholder="Ej. Christopher Nolan">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="video-people">Reparto / Actores Principales</label>
+                    <input type="text" id="video-people" placeholder="Ej. Leonardo DiCaprio, Cillian Murphy (separados por comas)">
+                </div>
+                <div class="form-group">
+                    <label for="video-tags">Etiquetas (separadas por comas)</label>
+                    <input type="text" id="video-tags" placeholder="Ej. espacio, futurista, suspenso, explosiones">
+                </div>
+                <div class="form-group">
+                    <label for="video-description">Sinopsis <span class="required">*</span></label>
+                    <textarea id="video-description" rows="3" placeholder="Escribe la sinopsis o resumen de la película aquí..." required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="add-video-cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Película</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL GESTIONAR / CREAR PERFIL ==================== -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-backdrop" id="profile-modal-backdrop"></div>
+        <div class="modal-content-wrapper form-modal mini-form">
+            <button class="modal-close-btn" id="profile-modal-close-btn">
+                <i data-lucide="x"></i>
+            </button>
+            <h2 class="form-modal-title" id="profile-modal-title">Crear Perfil</h2>
+            <form id="profile-form">
+                <input type="hidden" id="profile-edit-id">
+                <div class="form-group flex-center-col">
+                    <label>Elige un Avatar</label>
+                    <div class="avatar-selection-wrapper">
+                        <!-- Opciones de Avatares representados por colores premium con gradientes -->
+                        <div class="avatar-options-grid">
+                            <div class="avatar-opt selected" data-color="purple" style="background: linear-gradient(135deg, #a855f7, #6b21a8);"></div>
+                            <div class="avatar-opt" data-color="blue" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"></div>
+                            <div class="avatar-opt" data-color="red" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"></div>
+                            <div class="avatar-opt" data-color="green" style="background: linear-gradient(135deg, #10b981, #047857);"></div>
+                            <div class="avatar-opt" data-color="yellow" style="background: linear-gradient(135deg, #f59e0b, #b45309);"></div>
+                            <div class="avatar-opt" data-color="pink" style="background: linear-gradient(135deg, #ec4899, #be185d);"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="profile-name">Nombre del Perfil <span class="required">*</span></label>
+                    <input type="text" id="profile-name" placeholder="Ej. Papá, Sofía" maxlength="12" required autocomplete="off">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="profile-modal-cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="profile-modal-submit-btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== REPRODUCTOR DE VIDEO A PANTALLA COMPLETA ==================== -->
+    <div id="fullscreen-video-player" class="video-player-container hidden">
+        <video id="main-html5-video" src="" preload="auto"></video>
+        <div id="universal-iframe-container" class="hidden" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
+        
+        <!-- Pantalla de carga -->
+        <div class="player-loader" id="player-loader">
+            <div class="loader-spinner"></div>
+        </div>
+
+        <!-- Controles personalizados -->
+        <div class="player-controls-overlay" id="player-controls-overlay">
+            <!-- Barra superior -->
+            <div class="player-top-bar">
+                <button class="player-back-btn" id="player-back-btn" title="Volver al catálogo">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <div class="player-video-info">
+                    <span class="player-video-title" id="player-title-display">Sintel</span>
+                    <span class="player-video-subtitle" id="player-subtitle-display">Fantasía</span>
+                </div>
+            </div>
+
+            <!-- Botón de Play/Pause central grande (aparece al pausar/reproducir) -->
+            <div class="center-play-button" id="center-play-btn">
+                <i data-lucide="play" id="center-play-icon"></i>
+            </div>
+
+            <!-- Barra inferior de controles -->
+            <div class="player-bottom-controls">
+                <!-- Barra de progreso -->
+                <div class="progress-bar-container" id="player-progress-container">
+                    <div class="progress-bar-hover-time" id="player-hover-time">0:00</div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-buffer" id="player-buffer"></div>
+                        <div class="progress-bar-current" id="player-current-progress">
+                            <div class="progress-bar-handle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls-row">
+                    <div class="controls-left">
+                        <!-- Play/Pause -->
+                        <button class="ctrl-btn" id="ctrl-play-btn" title="Reproducir/Pausar (Espacio)">
+                            <i data-lucide="play"></i>
+                        </button>
+                        <!-- Retroceder 10s -->
+                        <button class="ctrl-btn" id="ctrl-rewind-btn" title="Retroceder 10s">
+                            <i data-lucide="rotate-ccw"></i>
+                        </button>
+                        <!-- Adelantar 10s -->
+                        <button class="ctrl-btn" id="ctrl-forward-btn" title="Adelantar 10s">
+                            <i data-lucide="rotate-cw"></i>
+                        </button>
+                        <!-- Control de Volumen -->
+                        <div class="volume-container">
+                            <button class="ctrl-btn" id="ctrl-volume-btn" title="Silenciar/Activar Sonido (M)">
+                                <i data-lucide="volume-2"></i>
+                            </button>
+                            <input type="range" class="volume-slider" id="ctrl-volume-slider" min="0" max="1" step="0.05" value="1">
+                        </div>
+                        <!-- Tiempo -->
+                        <div class="time-display">
+                            <span id="time-current">0:00</span>
+                            <span class="time-separator">/</span>
+                            <span id="time-duration">0:00</span>
+                        </div>
+                    </div>
+
+                    <div class="controls-right">
+                        <!-- Velocidad de reproducción -->
+                        <div class="speed-control-container">
+                            <button class="ctrl-btn" id="ctrl-speed-btn" title="Velocidad de reproducción">
+                                <span>1.0x</span>
+                            </button>
+                            <div class="speed-options hidden" id="speed-options">
+                                <button class="speed-opt" data-speed="0.5">0.5x</button>
+                                <button class="speed-opt" data-speed="0.75">0.75x</button>
+                                <button class="speed-opt active" data-speed="1">Normal</button>
+                                <button class="speed-opt" data-speed="1.25">1.25x</button>
+                                <button class="speed-opt" data-speed="1.5">1.5x</button>
+                                <button class="speed-opt" data-speed="2">2.0x</button>
+                            </div>
+                        </div>
+                        <!-- Pantalla completa -->
+                        <button class="ctrl-btn" id="ctrl-fullscreen-btn" title="Pantalla completa (F)">
+                            <i data-lucide="maximize"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MENÚ LATERAL DESLIZABLE (HAMBURGUESA MÓVIL) -->
+    <div class="mobile-menu-overlay hidden" id="mobile-menu-overlay">
+        <div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
+        <div class="mobile-menu-drawer">
+            <div class="mobile-menu-header">
+                <div class="logo">Movie<span>Flix</span></div>
+                <button class="mobile-menu-close" id="mobile-menu-close" title="Cerrar menú">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <nav class="mobile-menu-links">
+                <a href="#" class="mobile-menu-link active" data-target="home">
+                    <i data-lucide="home"></i>
+                    <span>Inicio</span>
+                </a>
+                <a href="#" class="mobile-menu-link" data-target="series">
+                    <i data-lucide="tv"></i>
+                    <span>Series</span>
+                </a>
+                <a href="#" class="mobile-menu-link" data-target="movies">
+                    <i data-lucide="film"></i>
+                    <span>Películas</span>
+                </a>
+                <a href="#" class="mobile-menu-link" data-target="my-list">
+                    <i data-lucide="list"></i>
+                    <span>Mi Lista</span>
+                </a>
+                <a href="#" class="mobile-menu-link" id="mobile-nav-add-sidebar">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Añadir Película</span>
+                </a>
+            </nav>
+            <div class="mobile-menu-footer">
+                <div class="sidebar-profile-info" id="sidebar-profile-info">
+                    <div class="sidebar-avatar" id="sidebar-profile-avatar"></div>
+                    <span class="sidebar-profile-name" id="sidebar-profile-name">Usuario</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script principal de la aplicación -->
+    <script src="app.js"></script>
+</body>
+</html>

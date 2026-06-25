@@ -1,0 +1,16 @@
+# System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# VS Code / IDEs
+.vscode/
+.idea/
+
+# Executable Installers (avoid uploading large executables)
+*.exe
+Portadas/*.exe
+
+# Local databases (uncomment if you don't want to upload your profiles/history)
+# profiles_db.json
