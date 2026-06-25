@@ -1302,17 +1302,17 @@ input, select, textarea {
     width: 100%;
     height: 100%;
     z-index: 5;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.85) 100%);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    pointer-events: none; /* Permitir que los clics pasen al video para pausar/reproducir */
+    background: rgba(0,0,0,0);
+    transition: background 0.3s ease;
 }
 
-/* Mostrar controles al mover el ratón */
+/* degradado de fondo oscuro solo cuando los controles están activos */
 .video-player-container.controls-active .player-controls-overlay {
-    opacity: 1;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.85) 100%);
 }
 
 .player-top-bar {
@@ -1320,6 +1320,7 @@ input, select, textarea {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    pointer-events: none; /* No bloquear eventos de clic */
 }
 
 .player-back-btn {
@@ -1327,11 +1328,16 @@ input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: var(--transition-fast);
+    transition: opacity 0.3s ease, transform var(--transition-fast);
+    pointer-events: auto; /* El botón siempre debe responder al clic */
+    opacity: 0.4; /* Sutil y semi-transparente por defecto para no molestar */
 }
 
-.player-back-btn:hover {
-    transform: scale(1.15);
+/* Opacidad completa cuando los controles están activos o se hace hover */
+.player-back-btn:hover,
+.video-player-container.controls-active .player-back-btn {
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 .player-back-btn i {
@@ -1342,6 +1348,12 @@ input, select, textarea {
 .player-video-info {
     display: flex;
     flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.video-player-container.controls-active .player-video-info {
+    opacity: 1;
 }
 
 .player-video-title {
@@ -1392,6 +1404,14 @@ input, select, textarea {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    opacity: 0;
+    pointer-events: none; /* Bloquear interacciones cuando esté oculto */
+    transition: opacity 0.3s ease;
+}
+
+.video-player-container.controls-active .player-bottom-controls {
+    opacity: 1;
+    pointer-events: auto; /* Permitir clics cuando esté activo */
 }
 
 /* Progreso */

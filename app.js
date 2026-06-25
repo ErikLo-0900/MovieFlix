@@ -1750,10 +1750,8 @@ function playVideo(video) {
         playerContainer.classList.remove("hidden");
         playerLoader.style.display = "none";
         
-        // Mostrar cabecera de salida
-        playerContainer.classList.add("controls-active");
-        playerContainer.style.cursor = "default";
-        clearTimeout(controlsTimeout);
+        // Mostrar cabecera de salida con desvanecimiento automático
+        resetControlsTimeout();
         return;
     }
 
@@ -1963,7 +1961,8 @@ function resetControlsTimeout() {
     playerContainer.style.cursor = "default";
     clearTimeout(controlsTimeout);
 
-    if (!videoElement.paused) {
+    const isIframeMode = playerContainer.classList.contains("iframe-mode");
+    if (isIframeMode || !videoElement.paused) {
         controlsTimeout = setTimeout(() => {
             playerContainer.classList.remove("controls-active");
             playerContainer.style.cursor = "none";
