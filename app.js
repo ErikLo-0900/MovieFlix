@@ -232,11 +232,16 @@ function loadFromLocalStorage() {
     const savedProfiles = localStorage.getItem("movieflix_profiles");
     if (savedProfiles) {
         profiles = JSON.parse(savedProfiles);
+        // Garantizar que todos los perfiles tengan favoritos e historial inicializados
+        profiles.forEach(p => {
+            if (!p.favorites) p.favorites = [];
+            if (!p.history) p.history = [];
+        });
     } else {
         // Perfiles iniciales por defecto
         profiles = [
-            { id: "p1", name: "Cinefilo", color: "purple", favorites: [] },
-            { id: "p2", name: "Invitado", color: "blue", favorites: [] }
+            { id: "p1", name: "Cinefilo", color: "purple", favorites: [], history: [] },
+            { id: "p2", name: "Invitado", color: "blue", favorites: [], history: [] }
         ];
         saveProfiles();
     }
@@ -441,7 +446,8 @@ function handleProfileSubmit(e) {
             id: "p_" + Date.now(),
             name: name,
             color: currentSelectedAvatarColor,
-            favorites: []
+            favorites: [],
+            history: []
         };
         profiles.push(newProfile);
     }
@@ -639,6 +645,30 @@ function renderVideoRows(filterType = "all") {
         return;
     }
 
+    // 0. Fila: Continuar viendo (Historial, aplicando filtro de tipo)
+    if (activeProfile && activeProfile.history && activeProfile.history.length > 0) {
+        const historyVideos = [];
+        activeProfile.history.forEach(h => {
+            if (filterType === "series" && h.type !== "series") return;
+            if (filterType === "movie" && h.type !== "movie") return;
+            
+            const catalogVideo = allVideos.find(v => v.id === h.id);
+            if (catalogVideo) {
+                const displayVideo = { ...catalogVideo };
+                displayVideo.progress = h.progress;
+                displayVideo.episodeId = h.episodeId;
+                displayVideo.episodeTitle = h.episodeTitle;
+                displayVideo.currentTime = h.currentTime;
+                displayVideo.duration = h.duration;
+                historyVideos.push(displayVideo);
+            }
+        });
+        
+        if (historyVideos.length > 0) {
+            createVideoRow("Continuar viendo", historyVideos, "play-circle");
+        }
+    }
+
     // 1. Fila de Recomendados para ti (aplicando filtro de tipo)
     const recommended = getRecommendations().filter(v => {
         if (filterType === "series") return v.type === "series";
@@ -715,8 +745,19 @@ function createVideoRow(title, videosList, iconName) {
 
         const isFav = activeProfile.favorites.includes(video.id);
 
+        let progressBarHTML = "";
+        if (video.progress !== undefined && video.progress > 0) {
+            const percent = Math.min(Math.max(video.progress * 100, 2), 100);
+            progressBarHTML = `
+                <div class="card-progress-bar">
+                    <div class="card-progress-fill" style="width: ${percent}%"></div>
+                </div>
+            `;
+        }
+
         card.innerHTML = `
             ${posterHTML}
+            ${progressBarHTML}
             <div class="card-overlay">
                 <div class="card-title">${video.title}</div>
                 <div class="card-meta">
@@ -1393,7 +1434,8 @@ function renderEpisodesList(video, seasonIndex) {
                 fileName: episode.fileName,
                 author: video.author,
                 category: video.category,
-                seriesTitle: video.title
+                seriesTitle: video.title,
+                seriesId: video.id
             };
             playVideo(playableEpisode);
         };
@@ -1694,19 +1736,34 @@ function getDirectStreamUrl(url) {
 }
 
 function playVideo(video) {
-    // Si es una serie, reproducir el primer capítulo por defecto
+    // Si es una serie, reproducir el primer capítulo por defecto o el último visto
     if (video.type === "series") {
         if (video.seasons && video.seasons.length > 0 && video.seasons[0].episodes && video.seasons[0].episodes.length > 0) {
-            const firstEpisode = video.seasons[0].episodes[0];
+            // Comprobar si hay un capítulo guardado en el historial de este perfil
+            let historyItem = activeProfile && activeProfile.history && activeProfile.history.find(h => h.id === video.id);
+            let targetEpisode = null;
+            if (historyItem && historyItem.episodeId) {
+                // Buscar el episodio en las temporadas
+                for (let season of video.seasons) {
+                    let ep = season.episodes.find(e => e.id === historyItem.episodeId);
+                    if (ep) {
+                        targetEpisode = ep;
+                        break;
+                    }
+                }
+            }
+            
+            const episodeToPlay = targetEpisode || video.seasons[0].episodes[0];
             const playableEpisode = {
-                id: firstEpisode.id,
-                title: firstEpisode.name,
-                url: firstEpisode.isLocalFile ? (sessionVideoBlobs[firstEpisode.id] || "") : firstEpisode.url,
-                isLocalFile: firstEpisode.isLocalFile,
-                fileName: firstEpisode.fileName,
+                id: episodeToPlay.id,
+                title: episodeToPlay.name,
+                url: episodeToPlay.isLocalFile ? (sessionVideoBlobs[episodeToPlay.id] || "") : episodeToPlay.url,
+                isLocalFile: episodeToPlay.isLocalFile,
+                fileName: episodeToPlay.fileName,
                 author: video.author,
                 category: video.category,
-                seriesTitle: video.title
+                seriesTitle: video.title,
+                seriesId: video.id
             };
             playVideo(playableEpisode);
         } else {
@@ -1716,6 +1773,9 @@ function playVideo(video) {
     }
 
     currentActiveVideo = video;
+    
+    // REGISTRAR INICIO EN EL HISTORIAL
+    recordHistoryStart(video);
     
     const iframeContainer = document.getElementById("universal-iframe-container");
     const youtubeId = getYouTubeId(video.url);
@@ -1767,6 +1827,20 @@ function playVideo(video) {
 
     videoElement.src = getDirectStreamUrl(video.url);
     
+    // REANUDAR POSICIÓN DE REPRODUCCIÓN (solo para HTML5 directo/local)
+    const targetId = video.seriesId ? video.seriesId : video.id;
+    let historyItem = activeProfile && activeProfile.history && activeProfile.history.find(h => h.id === targetId);
+    if (historyItem && historyItem.currentTime > 5 && historyItem.progress < 0.95) {
+        const shouldResume = !video.seriesId || (historyItem.episodeId === video.id);
+        if (shouldResume) {
+            const onLoadedMetadata = () => {
+                videoElement.currentTime = historyItem.currentTime;
+                videoElement.removeEventListener('loadedmetadata', onLoadedMetadata);
+            };
+            videoElement.addEventListener('loadedmetadata', onLoadedMetadata);
+        }
+    }
+    
     if (video.seriesTitle) {
         playerTitleDisplay.innerText = video.seriesTitle;
         playerSubtitleDisplay.innerText = video.title;
@@ -1793,6 +1867,143 @@ function playVideo(video) {
     resetControlsTimeout();
 }
 
+// ==========================================================================
+// FUNCIONES AUXILIARES DE HISTORIAL
+// ==========================================================================
+
+let lastProfileServerSave = 0;
+
+function recordHistoryStart(video) {
+    if (!activeProfile) return;
+    
+    const targetId = video.seriesId ? video.seriesId : video.id;
+    activeProfile.history = activeProfile.history || [];
+    
+    let historyItem = activeProfile.history.find(h => h.id === targetId);
+    if (!historyItem) {
+        historyItem = {
+            id: targetId,
+            type: video.seriesId ? "series" : "movie"
+        };
+        activeProfile.history.unshift(historyItem);
+    } else {
+        // Mover al inicio (más recientemente visto)
+        activeProfile.history = activeProfile.history.filter(h => h.id !== targetId);
+        activeProfile.history.unshift(historyItem);
+    }
+    
+    historyItem.episodeId = video.seriesId ? video.id : null;
+    historyItem.episodeTitle = video.seriesId ? video.title : null;
+    historyItem.timestamp = Date.now();
+    
+    if (historyItem.progress === undefined) {
+        historyItem.progress = 0.05; // 5% de progreso inicial para marcar que empezó
+        historyItem.currentTime = 0;
+        historyItem.duration = 0;
+    }
+    
+    saveProfiles();
+}
+
+function updatePlaybackHistory() {
+    if (!activeProfile || !currentActiveVideo) return;
+    
+    // Ignorar si el reproductor está oculto u omitir si es modo iframe
+    if (playerContainer.classList.contains("hidden") || playerContainer.classList.contains("iframe-mode")) return;
+    
+    const targetId = currentActiveVideo.seriesId ? currentActiveVideo.seriesId : currentActiveVideo.id;
+    activeProfile.history = activeProfile.history || [];
+    
+    let historyItem = activeProfile.history.find(h => h.id === targetId);
+    if (!historyItem) {
+        historyItem = {
+            id: targetId,
+            type: currentActiveVideo.seriesId ? "series" : "movie"
+        };
+        activeProfile.history.unshift(historyItem);
+    } else {
+        // Asegurar que esté al inicio
+        activeProfile.history = activeProfile.history.filter(h => h.id !== targetId);
+        activeProfile.history.unshift(historyItem);
+    }
+    
+    historyItem.episodeId = currentActiveVideo.seriesId ? currentActiveVideo.id : null;
+    historyItem.episodeTitle = currentActiveVideo.seriesId ? currentActiveVideo.title : null;
+    historyItem.currentTime = videoElement.currentTime;
+    historyItem.duration = videoElement.duration || 0;
+    historyItem.progress = historyItem.duration > 0 ? (historyItem.currentTime / historyItem.duration) : 0;
+    historyItem.timestamp = Date.now();
+    
+    // Guardar en almacenamiento local
+    localStorage.setItem("movieflix_profiles", JSON.stringify(profiles));
+    
+    // Guardar diferido en el servidor cada 15 segundos
+    const now = Date.now();
+    if (now - lastProfileServerSave > 15000) {
+        saveProfiles();
+        lastProfileServerSave = now;
+    }
+}
+
+function getNextEpisode(seriesId, currentEpisodeId) {
+    const allVideos = getAllVideos();
+    const series = allVideos.find(v => v.id === seriesId);
+    if (!series || !series.seasons) return null;
+    
+    let foundCurrent = false;
+    for (let s = 0; s < series.seasons.length; s++) {
+        const season = series.seasons[s];
+        for (let e = 0; e < season.episodes.length; e++) {
+            const ep = season.episodes[e];
+            if (foundCurrent) {
+                return {
+                    episode: ep,
+                    seasonIndex: s,
+                    episodeIndex: e
+                };
+            }
+            if (ep.id === currentEpisodeId) {
+                foundCurrent = true;
+            }
+        }
+    }
+    return null;
+}
+
+function handleVideoEnded() {
+    if (!activeProfile || !currentActiveVideo) return;
+    
+    const targetId = currentActiveVideo.seriesId ? currentActiveVideo.seriesId : currentActiveVideo.id;
+    
+    if (currentActiveVideo.seriesId) {
+        // Buscar el siguiente capítulo
+        const next = getNextEpisode(currentActiveVideo.seriesId, currentActiveVideo.id);
+        if (next) {
+            // Actualizar historial al siguiente capítulo al 0%
+            let historyItem = activeProfile.history && activeProfile.history.find(h => h.id === targetId);
+            if (historyItem) {
+                historyItem.episodeId = next.episode.id;
+                historyItem.episodeTitle = next.episode.name;
+                historyItem.currentTime = 0;
+                historyItem.progress = 0;
+                historyItem.timestamp = Date.now();
+            }
+            saveProfiles();
+            exitVideoPlayer();
+            renderVideoRows();
+            return;
+        }
+    }
+    
+    // Si es película o el último capítulo de la serie, remover del historial
+    if (activeProfile.history) {
+        activeProfile.history = activeProfile.history.filter(h => h.id !== targetId);
+    }
+    saveProfiles();
+    exitVideoPlayer();
+    renderVideoRows();
+}
+
 function exitVideoPlayer() {
     videoElement.pause();
     videoElement.src = "";
@@ -1805,6 +2016,10 @@ function exitVideoPlayer() {
     playerContainer.classList.remove("iframe-mode");
     clearTimeout(controlsTimeout);
     document.body.style.overflow = "auto";
+    
+    // Guardar historial al salir y refrescar filas del dashboard
+    saveProfiles();
+    renderVideoRows();
 }
 
 function togglePlayPause() {
@@ -2270,7 +2485,9 @@ function setupGlobalEvents() {
     });
     
     videoElement.addEventListener("timeupdate", updateTimeDisplay);
+    videoElement.addEventListener("timeupdate", updatePlaybackHistory);
     videoElement.addEventListener("progress", updateBufferDisplay);
+    videoElement.addEventListener("ended", handleVideoEnded);
     
     playerProgressContainer.addEventListener("click", setVideoProgress);
     playerProgressContainer.addEventListener("mousemove", handleProgressBarHover);
