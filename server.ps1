@@ -12,7 +12,7 @@ try {
     # Busca la IP de la interfaz conectada a la puerta de enlace activa (Internet)
     $activeRoute = Get-NetRoute -DestinationPrefix "0.0.0.0/0" -ErrorAction SilentlyContinue
     if ($activeRoute) {
-        $localIp = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $activeRoute.InterfaceIndex).IPAddress
+        $localIp = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $activeRoute.InterfaceIndex | Select-Object -First 1).IPAddress
     } else {
         # Fallback: tomar la primera IP de red local
         $localIp = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" } | Select-Object -First 1).IPAddress
@@ -25,8 +25,12 @@ try {
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:$port/")
 
-if ($localIp) {
-    $listener.Prefixes.Add("http://$($localIp):$port/")
+if ($localIp -and $localIp -notmatch '\s') {
+    try {
+        $listener.Prefixes.Add("http://$($localIp):$port/")
+    } catch {
+        Write-Host "Aviso: No se pudo habilitar el acceso a red local para la IP $($localIp) (requiere ejecutar como Administrador). El servidor estara disponible solo en localhost." -ForegroundColor Yellow
+    }
 }
 
 try {
@@ -229,8 +233,9 @@ try {
     }
 } catch {
     Write-Host "Error en el servidor: $_" -ForegroundColor Red
+    exit 1
 } finally {
-    if ($listener.IsListening) {
+    if ($listener -and $listener.IsListening) {
         $listener.Stop()
     }
     Write-Host "Servidor apagado." -ForegroundColor Yellow
