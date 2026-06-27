@@ -14,14 +14,30 @@
 </head>
 <body>
 
+    <!-- ==================== PANTALLA DE INGRESO (LOGIN) ==================== -->
+    <div id="login-screen" class="login-screen active">
+        <div class="login-container">
+            <div class="login-logo">MOVIE<span class="red-text">FLIX</span></div>
+            <h2 class="login-title">Ingresar</h2>
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <input type="password" id="login-password" placeholder="Contraseña Maestra" required autofocus autocomplete="current-password">
+                </div>
+                <div id="login-error-msg" class="login-error-msg hidden">Contraseña incorrecta. Inténtalo de nuevo.</div>
+                <button type="submit" class="login-btn">Entrar</button>
+            </form>
+        </div>
+    </div>
+
     <!-- ==================== PANTALLA SELECCIÓN DE PERFIL ==================== -->
-    <div id="profile-selector-screen" class="profile-screen active">
+    <div id="profile-selector-screen" class="profile-screen hidden">
         <div class="profile-container">
             <h1 class="profile-title">¿Quién está viendo?</h1>
             <div class="profiles-grid" id="profiles-grid">
                 <!-- Se renderizan dinámicamente los perfiles aquí -->
             </div>
             <button id="manage-profiles-btn" class="profile-btn secondary">Administrar perfiles</button>
+            <a href="#" id="profile-logout-link" class="profile-logout-link">Cerrar Sesión (Salir de la app)</a>
         </div>
     </div>
 
@@ -69,6 +85,7 @@
                         <hr class="dropdown-divider">
                         <a href="#" id="dropdown-manage-profiles"><i data-lucide="users"></i> Administrar perfiles</a>
                         <a href="#" id="dropdown-exit-profile"><i data-lucide="log-out"></i> Cambiar de Perfil</a>
+                        <a href="#" id="dropdown-logout-app" style="color: #ef4444;"><i data-lucide="shield-alert" style="color: #ef4444;"></i> Cerrar Sesión</a>
                     </div>
                 </div>
             </div>

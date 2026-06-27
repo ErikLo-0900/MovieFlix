@@ -26,10 +26,16 @@ let formSeasons = []; // Temporadas y capítulos en el formulario actual
 let editingVideoId = null; // ID del video siendo editado (null si estamos agregando)
 
 // Elementos DOM
+const loginScreen = document.getElementById("login-screen");
+const loginForm = document.getElementById("login-form");
+const loginPasswordInput = document.getElementById("login-password");
+const loginErrorMsg = document.getElementById("login-error-msg");
 const profileScreen = document.getElementById("profile-selector-screen");
 const mainDashboard = document.getElementById("main-dashboard");
 const profilesGrid = document.getElementById("profiles-grid");
 const manageProfilesBtn = document.getElementById("manage-profiles-btn");
+const profileLogoutLink = document.getElementById("profile-logout-link");
+const dropdownLogoutApp = document.getElementById("dropdown-logout-app");
 
 // DOM Navbar
 const navbar = document.getElementById("navbar");
@@ -170,14 +176,50 @@ async function initApp() {
     // Cargar base de datos local
     loadFromLocalStorage();
 
-    // Renderizar selector de perfiles
-    renderProfilesScreen();
+    // Lógica de autenticación del sitio (contraseña maestra erison2)
+    setupSiteAuthentication();
 
     // Eventos globales
     setupGlobalEvents();
 
     // Sincronizar con el servidor de forma asíncrona
     await syncWithServer();
+}
+
+function setupSiteAuthentication() {
+    const isAuth = localStorage.getItem("movieflix_login_auth") === "true";
+    if (isAuth) {
+        loginScreen.classList.add("hidden");
+        loginScreen.classList.remove("active");
+        profileScreen.classList.remove("hidden");
+        profileScreen.classList.add("active");
+        renderProfilesScreen();
+    } else {
+        loginScreen.classList.remove("hidden");
+        loginScreen.classList.add("active");
+        profileScreen.classList.remove("active");
+        profileScreen.classList.add("hidden");
+        if (loginPasswordInput) loginPasswordInput.focus();
+    }
+
+    if (loginForm) {
+        loginForm.onsubmit = (e) => {
+            e.preventDefault();
+            const password = loginPasswordInput.value;
+            if (password === "erison2") {
+                localStorage.setItem("movieflix_login_auth", "true");
+                loginScreen.classList.add("hidden");
+                loginScreen.classList.remove("active");
+                profileScreen.classList.remove("hidden");
+                profileScreen.classList.add("active");
+                renderProfilesScreen();
+            } else {
+                loginErrorMsg.classList.remove("hidden");
+                loginPasswordInput.value = "";
+                loginPasswordInput.focus();
+            }
+        };
+    }
 }
 
 async function syncWithServer() {
@@ -1011,6 +1053,21 @@ function openDetailsModal(video) {
         toggleFavorite(video.id);
     };
 
+function checkMasterPassword(promptMessage) {
+    if (localStorage.getItem("movieflix_master_auth") === "true") {
+        return true;
+    }
+    const password = prompt(promptMessage);
+    if (password === "erison1") {
+        localStorage.setItem("movieflix_master_auth", "true");
+        return true;
+    }
+    if (password !== null) {
+        alert("Contraseña incorrecta. Acción cancelada.");
+    }
+    return false;
+}
+
     // Botón eliminar (sólo visible para películas agregadas por el usuario)
     const isCustom = customVideos.some(v => v.id === video.id);
     if (isCustom) {
@@ -1018,22 +1075,14 @@ function openDetailsModal(video) {
         detailsEditBtn.style.display = "flex";
         
         detailsDeleteBtn.onclick = () => {
-            const password = prompt("Introduce la contraseña maestra para eliminar este contenido:");
-            if (password !== "erison1") {
-                if (password !== null) alert("Contraseña incorrecta. Acción cancelada.");
-                return;
-            }
+            if (!checkMasterPassword("Introduce la contraseña maestra para eliminar este contenido:")) return;
             if (confirm(`¿Estás seguro de que deseas eliminar "${video.title}" de tu videoteca?`)) {
                 deleteVideo(video.id);
             }
         };
 
         detailsEditBtn.onclick = () => {
-            const password = prompt("Introduce la contraseña maestra para editar este contenido:");
-            if (password !== "erison1") {
-                if (password !== null) alert("Contraseña incorrecta. Acción cancelada.");
-                return;
-            }
+            if (!checkMasterPassword("Introduce la contraseña maestra para editar este contenido:")) return;
 
             editingVideoId = video.id;
             closeDetailsModal();
@@ -2233,6 +2282,28 @@ function setupGlobalEvents() {
         renderProfilesScreen();
     };
 
+    if (profileLogoutLink) {
+        profileLogoutLink.onclick = (e) => {
+            e.preventDefault();
+            localStorage.removeItem("movieflix_login_auth");
+            loginErrorMsg.classList.add("hidden");
+            loginPasswordInput.value = "";
+            setupSiteAuthentication();
+        };
+    }
+
+    if (dropdownLogoutApp) {
+        dropdownLogoutApp.onclick = (e) => {
+            e.preventDefault();
+            localStorage.removeItem("movieflix_login_auth");
+            loginErrorMsg.classList.add("hidden");
+            loginPasswordInput.value = "";
+            mainDashboard.classList.add("hidden");
+            mainDashboard.classList.remove("active");
+            setupSiteAuthentication();
+        };
+    }
+
     manageProfilesBtn.onclick = toggleProfileManagement;
 
     profileModalCloseBtn.onclick = closeProfileModal;
@@ -2441,11 +2512,7 @@ function setupGlobalEvents() {
     const handleAddVideoClick = (e) => {
         if (e) e.preventDefault();
         
-        const password = prompt("Introduce la contraseña maestra para añadir contenido:");
-        if (password !== "erison1") {
-            if (password !== null) alert("Contraseña incorrecta. Acción cancelada.");
-            return;
-        }
+        if (!checkMasterPassword("Introduce la contraseña maestra para añadir contenido:")) return;
 
         mobileMenuOverlay.classList.add("hidden"); // Asegurar cerrar el menú móvil
         tabVideoUrl.click();
