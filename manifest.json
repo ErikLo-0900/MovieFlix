@@ -3,7 +3,7 @@
   "short_name": "MovieFlix",
   "description": "Tu videoteca privada de películas y series",
   "start_url": "./index.html",
-  "display": "standalone",
+  "display": "minimal-ui",
   "background_color": "#09090b",
   "theme_color": "#e50914",
   "orientation": "any",
