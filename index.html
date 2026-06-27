@@ -11,6 +11,13 @@
     <!-- Lucide Icons for premium look -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="styles.css">
+    <!-- PWA Manifest & Mobile tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="MovieFlix">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <meta name="theme-color" content="#e50914">
 </head>
 <body>
 
@@ -253,8 +260,13 @@
                         <select id="video-category" required>
                             <option value="Accion">Acción y Aventura</option>
                             <option value="SciFi">Ciencia Ficción y Fantasía</option>
-                            <option value="Drama">Drama y Romance</option>
+                            <option value="Drama">Drama</option>
+                            <option value="Romance">Romance</option>
                             <option value="Comedia">Comedia</option>
+                            <option value="Terror">Terror y Suspenso</option>
+                            <option value="Documental">Documental</option>
+                            <option value="Animacion">Animación y Anime</option>
+                            <option value="Infantil">Familiar e Infantil</option>
                         </select>
                     </div>
                 </div>

@@ -165,8 +165,13 @@ let controlsTimeout = null;
 const GENDER_NAMES = {
     Accion: "Acción y Aventura",
     SciFi: "Ciencia Ficción y Fantasía",
-    Drama: "Drama y Romance",
-    Comedia: "Comedia"
+    Drama: "Drama",
+    Romance: "Romance",
+    Comedia: "Comedia",
+    Terror: "Terror y Suspenso",
+    Documental: "Documental",
+    Animacion: "Animación y Anime",
+    Infantil: "Familiar e Infantil"
 };
 
 // ==========================================================================
@@ -188,6 +193,13 @@ async function initApp() {
 
     // Sincronizar con el servidor de forma asíncrona
     await syncWithServer();
+
+    // Registrar Service Worker para soporte PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
+            .catch(err => console.error('Error al registrar el Service Worker:', err));
+    }
 }
 
 function setupSiteAuthentication() {
@@ -750,8 +762,13 @@ function renderVideoRows(filterType = "all") {
     const categories = [
         { name: "Acción y Aventura", key: "Accion", icon: "flame" },
         { name: "Ciencia Ficción y Fantasía", key: "SciFi", icon: "rocket" },
-        { name: "Drama y Romance", key: "Drama", icon: "film" },
-        { name: "Comedia", key: "Comedia", icon: "smile" }
+        { name: "Drama", key: "Drama", icon: "film" },
+        { name: "Romance", key: "Romance", icon: "heart" },
+        { name: "Comedia", key: "Comedia", icon: "smile" },
+        { name: "Terror y Suspenso", key: "Terror", icon: "ghost" },
+        { name: "Documental", key: "Documental", icon: "compass" },
+        { name: "Animación y Anime", key: "Animacion", icon: "clapperboard" },
+        { name: "Familiar e Infantil", key: "Infantil", icon: "baby" }
     ];
 
     categories.forEach(cat => {
