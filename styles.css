@@ -2678,4 +2678,24 @@ input, select, textarea {
     border-color: var(--primary);
 }
 
+.profile-link-google {
+    display: inline-block;
+    margin-top: 1.5rem;
+    margin-right: 1.5rem;
+    font-size: 0.9rem;
+    color: #4285F4;
+    text-decoration: none;
+    transition: filter var(--transition-fast);
+}
+
+.profile-link-google:hover {
+    filter: brightness(1.2);
+    text-decoration: underline;
+}
+
+.profile-link-google:focus {
+    outline: 2px solid #4285F4;
+    outline-offset: 4px;
+}
+
 

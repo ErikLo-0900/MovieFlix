@@ -34,7 +34,9 @@ const profileScreen = document.getElementById("profile-selector-screen");
 const mainDashboard = document.getElementById("main-dashboard");
 const profilesGrid = document.getElementById("profiles-grid");
 const manageProfilesBtn = document.getElementById("manage-profiles-btn");
+const profileLinkGoogle = document.getElementById("profile-link-google");
 const profileLogoutLink = document.getElementById("profile-logout-link");
+const dropdownLinkGoogle = document.getElementById("dropdown-link-google");
 const dropdownLogoutApp = document.getElementById("dropdown-logout-app");
 
 // DOM Navbar
@@ -2393,6 +2395,21 @@ function setupGlobalEvents() {
         profileScreen.classList.add("active");
         renderProfilesScreen();
     };
+
+    // Acciones de Vinculación de Cuenta de Google (Drive)
+    const handleGoogleLinkClick = (e) => {
+        e.preventDefault();
+        const googleLoginUrl = `https://accounts.google.com/ServiceLogin?continue=${encodeURIComponent(window.location.href)}`;
+        window.location.href = googleLoginUrl;
+    };
+
+    if (profileLinkGoogle) {
+        profileLinkGoogle.onclick = handleGoogleLinkClick;
+    }
+
+    if (dropdownLinkGoogle) {
+        dropdownLinkGoogle.onclick = handleGoogleLinkClick;
+    }
 
     if (profileLogoutLink) {
         profileLogoutLink.onclick = (e) => {
