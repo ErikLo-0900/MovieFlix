@@ -81,6 +81,7 @@ const detailsCloseBtn = document.getElementById("details-close-btn");
 const detailsBackdrop = document.getElementById("details-backdrop");
 const detailsPlayBtn = document.getElementById("details-play-btn");
 const detailsEpisodesBtn = document.getElementById("details-episodes-btn");
+const detailsBackToInfoBtn = document.getElementById("details-back-to-info-btn");
 const detailsFavoriteBtn = document.getElementById("details-favorite-btn");
 const detailsDeleteBtn = document.getElementById("details-delete-btn");
 const detailsEditBtn = document.getElementById("details-edit-btn");
@@ -1022,6 +1023,7 @@ function performSearch() {
 
 function openDetailsModal(video) {
     currentActiveVideo = video;
+    videoDetailsModal.classList.remove("episodes-only-mode");
     
     // Configurar imagen de fondo en el modal
     if (video.poster) {
@@ -1053,16 +1055,20 @@ function openDetailsModal(video) {
     if (video.type === "series") {
         detailsEpisodesBtn.classList.remove("hidden");
         detailsEpisodesBtn.onclick = () => {
-            const episodesSection = document.getElementById("modal-series-episodes-section");
-            if (episodesSection) {
-                episodesSection.scrollIntoView({ behavior: "smooth" });
-                const selector = document.getElementById("season-selector");
-                if (selector) selector.focus();
-            }
+            videoDetailsModal.classList.add("episodes-only-mode");
+            const wrapper = document.querySelector(".modal-content-wrapper");
+            if (wrapper) wrapper.scrollTop = 0;
+            const selector = document.getElementById("season-selector");
+            if (selector) selector.focus();
         };
     } else {
         detailsEpisodesBtn.classList.add("hidden");
     }
+
+    detailsBackToInfoBtn.onclick = () => {
+        videoDetailsModal.classList.remove("episodes-only-mode");
+        detailsEpisodesBtn.focus();
+    };
 
     detailsFavoriteBtn.onclick = () => {
         toggleFavorite(video.id);
@@ -1510,6 +1516,10 @@ function renderEpisodesList(video, seasonIndex) {
                 e.preventDefault();
                 row.click();
             }
+        };
+        
+        row.onfocus = () => {
+            row.scrollIntoView({ behavior: "smooth", block: "nearest" });
         };
         
         episodesList.appendChild(row);
@@ -2263,6 +2273,24 @@ function resetControlsTimeout() {
 // ==========================================================================
 
 function setupGlobalEvents() {
+    // Auxiliar para auto-desplazar elementos al enfocarse en Smart TV
+    const makeElementAutoScrollOnFocus = (el) => {
+        if (!el) return;
+        el.addEventListener("focus", () => {
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+    };
+
+    // Registrar elementos enfocables del modal de detalles para auto-scroll
+    makeElementAutoScrollOnFocus(detailsCloseBtn);
+    makeElementAutoScrollOnFocus(detailsPlayBtn);
+    makeElementAutoScrollOnFocus(detailsEpisodesBtn);
+    makeElementAutoScrollOnFocus(detailsBackToInfoBtn);
+    makeElementAutoScrollOnFocus(detailsFavoriteBtn);
+    makeElementAutoScrollOnFocus(detailsEditBtn);
+    makeElementAutoScrollOnFocus(detailsDeleteBtn);
+    makeElementAutoScrollOnFocus(seasonSelector);
+
     window.addEventListener("scroll", () => {
         if (window.scrollY > 50) {
             navbar.classList.add("scrolled");

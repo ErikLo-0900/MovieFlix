@@ -192,13 +192,16 @@
 
                 <!-- Sección de Episodios (Solo para Series) -->
                 <div id="modal-series-episodes-section" class="modal-episodes-section hidden">
-                    <div class="episodes-header">
-                        <h3 class="similar-title">Episodios</h3>
+                    <div class="episodes-header" style="display: flex; align-items: center; gap: 1.5rem; width: 100%; flex-wrap: wrap;">
+                        <h3 class="similar-title" style="margin-bottom: 0;">Episodios</h3>
                         <div class="season-selector-container">
                             <select id="season-selector" class="season-select-dropdown">
                                 <!-- Se llena dinámicamente -->
                             </select>
                         </div>
+                        <button class="btn btn-secondary hidden" id="details-back-to-info-btn" style="margin-left: auto; font-size: 0.85rem; padding: 0.5rem 1rem;">
+                            <i data-lucide="arrow-left"></i> Volver a Detalles
+                        </button>
                     </div>
                     <div class="episodes-list" id="episodes-list">
                         <!-- Se llena dinámicamente -->

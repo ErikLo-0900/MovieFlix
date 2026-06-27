@@ -2618,4 +2618,21 @@ input, select, textarea {
     outline-offset: 4px;
 }
 
+/* MODO EXCLUSIVO DE EPISODIOS */
+#video-details-modal.episodes-only-mode .modal-hero {
+    display: none !important;
+}
+
+#video-details-modal.episodes-only-mode .modal-details-grid {
+    display: none !important;
+}
+
+#video-details-modal.episodes-only-mode #details-back-to-info-btn {
+    display: inline-flex !important;
+}
+
+#video-details-modal.episodes-only-mode .modal-episodes-section {
+    padding-top: 2rem;
+}
+
 
