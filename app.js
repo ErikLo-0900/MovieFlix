@@ -135,6 +135,7 @@ const videoElement = document.getElementById("main-html5-video");
 const playerLoader = document.getElementById("player-loader");
 const playerControls = document.getElementById("player-controls-overlay");
 const playerBackBtn = document.getElementById("player-back-btn");
+const playerExternalLinkBtn = document.getElementById("player-external-link-btn");
 const playerTitleDisplay = document.getElementById("player-title-display");
 const playerSubtitleDisplay = document.getElementById("player-subtitle-display");
 const centerPlayBtn = document.getElementById("center-play-btn");
@@ -1893,6 +1894,17 @@ function playVideo(video) {
     // REGISTRAR INICIO EN EL HISTORIAL
     recordHistoryStart(video);
     
+    // Configurar botón de enlace externo (para resolver el bloqueo de cookies de Drive en PWA)
+    if (video.url && !video.isLocalFile) {
+        playerExternalLinkBtn.classList.remove("hidden");
+        playerExternalLinkBtn.onclick = (e) => {
+            e.stopPropagation();
+            window.open(video.url, '_blank');
+        };
+    } else {
+        playerExternalLinkBtn.classList.add("hidden");
+    }
+    
     const iframeContainer = document.getElementById("universal-iframe-container");
     const youtubeId = getYouTubeId(video.url);
     const driveEmbedUrl = getGoogleDriveEmbedUrl(video.url);
@@ -2128,6 +2140,7 @@ function exitVideoPlayer() {
     const iframeContainer = document.getElementById("universal-iframe-container");
     iframeContainer.innerHTML = "";
     
+    playerExternalLinkBtn.classList.add("hidden");
     playerContainer.classList.add("hidden");
     playerContainer.classList.remove("iframe-mode");
     clearTimeout(controlsTimeout);
