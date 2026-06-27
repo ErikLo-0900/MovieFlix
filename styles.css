@@ -2602,4 +2602,20 @@ input, select, textarea {
     color: #ef4444;
 }
 
+.btn-episodes {
+    background-color: rgba(109, 109, 110, 0.7);
+    color: white;
+    backdrop-filter: blur(8px);
+}
+
+.btn-episodes:hover {
+    background-color: rgba(109, 109, 110, 0.4);
+    transform: scale(1.03);
+}
+
+.btn-episodes:focus {
+    outline: 3px solid var(--primary);
+    outline-offset: 4px;
+}
+
 

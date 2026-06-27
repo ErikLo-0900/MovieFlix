@@ -80,6 +80,7 @@ const videoDetailsModal = document.getElementById("video-details-modal");
 const detailsCloseBtn = document.getElementById("details-close-btn");
 const detailsBackdrop = document.getElementById("details-backdrop");
 const detailsPlayBtn = document.getElementById("details-play-btn");
+const detailsEpisodesBtn = document.getElementById("details-episodes-btn");
 const detailsFavoriteBtn = document.getElementById("details-favorite-btn");
 const detailsDeleteBtn = document.getElementById("details-delete-btn");
 const detailsEditBtn = document.getElementById("details-edit-btn");
@@ -1048,6 +1049,20 @@ function openDetailsModal(video) {
         closeDetailsModal();
         playVideo(video);
     };
+
+    if (video.type === "series") {
+        detailsEpisodesBtn.classList.remove("hidden");
+        detailsEpisodesBtn.onclick = () => {
+            const episodesSection = document.getElementById("modal-series-episodes-section");
+            if (episodesSection) {
+                episodesSection.scrollIntoView({ behavior: "smooth" });
+                const selector = document.getElementById("season-selector");
+                if (selector) selector.focus();
+            }
+        };
+    } else {
+        detailsEpisodesBtn.classList.add("hidden");
+    }
 
     detailsFavoriteBtn.onclick = () => {
         toggleFavorite(video.id);
