@@ -273,6 +273,21 @@ async function syncWithServer() {
     }
 }
 
+function checkMasterPassword(promptMessage) {
+    if (localStorage.getItem("movieflix_master_auth") === "true") {
+        return true;
+    }
+    const password = prompt(promptMessage);
+    if (password === "erison1") {
+        localStorage.setItem("movieflix_master_auth", "true");
+        return true;
+    }
+    if (password !== null) {
+        alert("Contraseña incorrecta. Acción cancelada.");
+    }
+    return false;
+}
+
 function loadFromLocalStorage() {
     // Cargar perfiles (con prefijo de movieflix)
     const savedProfiles = localStorage.getItem("movieflix_profiles");
