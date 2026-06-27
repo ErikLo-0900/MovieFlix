@@ -2230,9 +2230,18 @@ input, select, textarea {
     transition: var(--transition-fast);
 }
 
-.episode-row:hover {
+.episode-row:hover, .episode-row:focus {
     background-color: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+.episode-row:focus-visible {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
 .episode-number {
@@ -2256,7 +2265,7 @@ input, select, textarea {
     flex-shrink: 0;
 }
 
-.episode-row:hover .episode-play-icon {
+.episode-row:hover .episode-play-icon, .episode-row:focus .episode-play-icon {
     background-color: var(--primary);
     transform: scale(1.1);
 }

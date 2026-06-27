@@ -1411,6 +1411,7 @@ function renderEpisodesList(video, seasonIndex) {
     season.episodes.forEach((episode, index) => {
         const row = document.createElement("div");
         row.className = "episode-row";
+        row.tabIndex = 0; // Hacer enfocable por teclado/control remoto
         row.innerHTML = `
             <span class="episode-number">${index + 1}</span>
             <div class="episode-play-icon" title="Reproducir capítulo">
@@ -1438,6 +1439,13 @@ function renderEpisodesList(video, seasonIndex) {
                 seriesId: video.id
             };
             playVideo(playableEpisode);
+        };
+        
+        row.onkeydown = (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                row.click();
+            }
         };
         
         episodesList.appendChild(row);
