@@ -2386,8 +2386,8 @@ function setupGlobalEvents() {
     // Acciones de Vinculación de Cuenta de Google (Drive)
     const handleGoogleLinkClick = (e) => {
         e.preventDefault();
-        const googleLoginUrl = `https://accounts.google.com/ServiceLogin?continue=${encodeURIComponent(window.location.href)}`;
-        window.location.href = googleLoginUrl;
+        // Abrir en una pestaña nueva del navegador principal para evitar el bloqueo de seguridad de Google en WebView/PWA
+        window.open("https://accounts.google.com", "_blank");
     };
 
     if (profileLinkGoogle) {
