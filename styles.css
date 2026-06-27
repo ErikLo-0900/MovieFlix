@@ -2635,4 +2635,47 @@ input, select, textarea {
     padding-top: 2rem;
 }
 
+.episodes-scroll-controls {
+    position: sticky;
+    bottom: 20px;
+    margin-right: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    z-index: 150;
+    pointer-events: all;
+    margin-top: 2rem;
+    padding-bottom: 0.5rem;
+}
+
+.scroll-ctrl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-md);
+    background-color: rgba(24, 24, 27, 0.95);
+    color: white;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    transition: var(--transition-fast);
+}
+
+.scroll-ctrl-btn:hover {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.scroll-ctrl-btn:focus {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
 

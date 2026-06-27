@@ -82,6 +82,8 @@ const detailsBackdrop = document.getElementById("details-backdrop");
 const detailsPlayBtn = document.getElementById("details-play-btn");
 const detailsEpisodesBtn = document.getElementById("details-episodes-btn");
 const detailsBackToInfoBtn = document.getElementById("details-back-to-info-btn");
+const episodesScrollDownBtn = document.getElementById("episodes-scroll-down-btn");
+const episodesScrollUpBtn = document.getElementById("episodes-scroll-up-btn");
 const detailsFavoriteBtn = document.getElementById("details-favorite-btn");
 const detailsDeleteBtn = document.getElementById("details-delete-btn");
 const detailsEditBtn = document.getElementById("details-edit-btn");
@@ -2290,6 +2292,28 @@ function setupGlobalEvents() {
     makeElementAutoScrollOnFocus(detailsEditBtn);
     makeElementAutoScrollOnFocus(detailsDeleteBtn);
     makeElementAutoScrollOnFocus(seasonSelector);
+
+    if (episodesScrollDownBtn) {
+        episodesScrollDownBtn.onclick = (e) => {
+            e.preventDefault();
+            const wrapper = document.querySelector(".modal-content-wrapper");
+            if (wrapper) {
+                wrapper.scrollBy({ top: 350, behavior: "smooth" });
+            }
+        };
+        makeElementAutoScrollOnFocus(episodesScrollDownBtn);
+    }
+
+    if (episodesScrollUpBtn) {
+        episodesScrollUpBtn.onclick = (e) => {
+            e.preventDefault();
+            const wrapper = document.querySelector(".modal-content-wrapper");
+            if (wrapper) {
+                wrapper.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        };
+        makeElementAutoScrollOnFocus(episodesScrollUpBtn);
+    }
 
     window.addEventListener("scroll", () => {
         if (window.scrollY > 50) {
