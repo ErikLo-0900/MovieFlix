@@ -2024,7 +2024,7 @@ input, select, textarea {
         font-size: 0.9rem;
     }
     .channels-section {
-        margin-top: -60px;
+        margin-top: -55px !important;
     }
     .main-content {
         margin-top: 0;
@@ -2035,6 +2035,10 @@ input, select, textarea {
     }
     .row-title {
         font-size: 1.2rem;
+    }
+    .modal-actions {
+        flex-wrap: wrap;
+        gap: 0.8rem;
     }
 }
 
@@ -2082,6 +2086,10 @@ input, select, textarea {
         font-size: 2rem;
         margin-bottom: 1.8rem;
     }
+    .modal-content-wrapper {
+        width: 95%;
+        max-height: 95vh;
+    }
     .modal-hero {
         padding: 80px 20px 20px 20px;
         min-height: 220px;
@@ -2090,6 +2098,29 @@ input, select, textarea {
     .modal-title {
         font-size: 1.6rem;
         margin-bottom: 1rem;
+    }
+    .modal-actions {
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        width: 100%;
+    }
+    #details-play-btn, 
+    #details-episodes-btn {
+        width: 100%;
+        justify-content: center;
+        margin: 0;
+    }
+    .modal-details-left .modal-meta {
+        flex-wrap: wrap;
+        gap: 0.6rem 0.8rem;
+        margin-bottom: 1rem;
+    }
+    .meta-item.category {
+        display: inline-block;
+        max-width: 100%;
+        word-break: break-word;
+        text-align: center;
+        line-height: 1.3;
     }
     .modal-body-container {
         padding: 1.5rem;
