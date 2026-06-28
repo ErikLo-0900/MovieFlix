@@ -26,13 +26,13 @@
         <div class="login-container">
             <div class="login-logo">MOVIE<span class="red-text">FLIX</span></div>
             <h2 class="login-title">Ingresar</h2>
-            <div class="login-form">
+            <form id="login-form" class="login-form" action="#" onsubmit="event.preventDefault();">
                 <div class="form-group">
                     <input type="password" id="login-password" placeholder="Contraseña Maestra" required autofocus autocomplete="current-password">
                 </div>
                 <div id="login-error-msg" class="login-error-msg hidden">Contraseña incorrecta. Inténtalo de nuevo.</div>
-                <button type="button" class="login-btn" id="login-submit-btn">Entrar</button>
-            </div>
+                <button type="submit" class="login-btn" id="login-submit-btn">Entrar</button>
+            </form>
         </div>
     </div>
 

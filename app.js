@@ -309,13 +309,24 @@ function setupSiteAuthentication() {
         }
     };
 
+    const loginForm = document.getElementById("login-form");
+    if (loginForm) {
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            executeLogin();
+        });
+    }
+
     if (loginSubmitBtn) {
-        loginSubmitBtn.onclick = executeLogin;
+        loginSubmitBtn.onclick = (e) => {
+            e.preventDefault();
+            executeLogin();
+        };
     }
 
     if (loginPasswordInput) {
         loginPasswordInput.onkeydown = (e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" || e.keyCode === 13) {
                 e.preventDefault();
                 executeLogin();
             }
