@@ -2785,6 +2785,12 @@ function setupGlobalEvents() {
             clearSearchBtn.classList.add("hidden");
             document.getElementById("search-box").classList.remove("active");
 
+            // Si es diferente a "tv", resetear el filtro de canales a "all"
+            if (target !== "tv") {
+                currentPlatformFilter = "all";
+                updateChannelUI("all");
+            }
+
             const allVideos = getAllVideos();
 
             if (target === "my-list") {
@@ -2809,6 +2815,10 @@ function setupGlobalEvents() {
             } else if (target === "movies") {
                 renderVideoRows("movie");
             } else if (target === "home") {
+                renderVideoRows("all");
+            } else if (target === "tv") {
+                currentPlatformFilter = "tv";
+                updateChannelUI("tv");
                 renderVideoRows("all");
             }
         });
