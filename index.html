@@ -38,14 +38,26 @@
 
     <!-- ==================== PANTALLA SELECCIÓN DE PERFIL ==================== -->
     <div id="profile-selector-screen" class="profile-screen hidden">
-        <div class="profile-container">
-            <h1 class="profile-title">¿Quién está viendo?</h1>
-            <div class="profiles-grid" id="profiles-grid">
-                <!-- Se renderizan dinámicamente los perfiles aquí -->
+        <!-- Lado Izquierdo: Carrusel de Portadas Dinámicas -->
+        <div class="profile-slideshow-container" id="profile-slideshow">
+            <div class="profile-slide slide-active" id="profile-slide-1"></div>
+            <div class="profile-slide" id="profile-slide-2"></div>
+            <div class="profile-slideshow-overlay"></div>
+        </div>
+
+        <!-- Lado Derecho: Interfaz de Selección de Perfil -->
+        <div class="profile-selection-side">
+            <div class="profile-container">
+                <h1 class="profile-title">¿Quién está viendo?</h1>
+                <div class="profiles-grid" id="profiles-grid">
+                    <!-- Se renderizan dinámicamente los perfiles aquí -->
+                </div>
+                <button id="manage-profiles-btn" class="profile-btn secondary">Administrar perfiles</button>
+                <div class="profile-links-container">
+                    <a href="#" id="profile-link-google" class="profile-link-google">Vincular cuenta de Google (Drive)</a>
+                    <a href="#" id="profile-logout-link" class="profile-logout-link">Cerrar Sesión (Salir de la app)</a>
+                </div>
             </div>
-            <button id="manage-profiles-btn" class="profile-btn secondary">Administrar perfiles</button>
-            <a href="#" id="profile-link-google" class="profile-link-google">Vincular cuenta de Google (Drive)</a>
-            <a href="#" id="profile-logout-link" class="profile-logout-link">Cerrar Sesión (Salir de la app)</a>
         </div>
     </div>
 

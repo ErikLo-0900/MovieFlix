@@ -98,6 +98,10 @@ let sessionVideoBlobs = {};
 let formSeasons = []; // Temporadas y capítulos en el formulario actual
 let editingVideoId = null; // ID del video siendo editado (null si estamos agregando)
 
+let profileSlideshowInterval = null;
+let profileSlideshowIndex = 0;
+let profileSlideshowPosters = [];
+
 // Elementos DOM
 const loginScreen = document.getElementById("login-screen");
 const loginSubmitBtn = document.getElementById("login-submit-btn");
@@ -278,6 +282,7 @@ function initApp() {
 }
 
 function setupSiteAuthentication() {
+    stopProfileSlideshow();
     const isAuth = localStorage.getItem("movieflix_login_auth") === "true";
     if (isAuth) {
         loginScreen.classList.add("hidden");
@@ -532,9 +537,11 @@ function renderProfilesScreen() {
     profilesGrid.appendChild(addCard);
 
     lucide.createIcons();
+    startProfileSlideshow();
 }
 
 function selectProfile(profileId) {
+    stopProfileSlideshow();
     activeProfile = profiles.find(p => p.id === profileId);
     if (!activeProfile) return;
 
@@ -563,6 +570,58 @@ function selectProfile(profileId) {
     setupHeroBanner();
     renderVideoRows();
     updateDropdownProfiles();
+}
+
+function startProfileSlideshow() {
+    if (profileSlideshowInterval) return; // Ya está corriendo
+
+    const videos = getAllVideos();
+    profileSlideshowPosters = videos
+        .map(v => v.poster || v.img) // Obtener poster, o img de fallback
+        .filter(url => url && url.startsWith('http')); // Filtrar URLs válidas
+
+    if (profileSlideshowPosters.length === 0) {
+        profileSlideshowPosters = [
+            "https://images.unsplash.com/photo-1616530940355-351fabd9524b?q=80&w=1000",
+            "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1000",
+            "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?q=80&w=1000"
+        ];
+    }
+
+    const slide1 = document.getElementById("profile-slide-1");
+    const slide2 = document.getElementById("profile-slide-2");
+    if (!slide1 || !slide2) return;
+
+    profileSlideshowIndex = 0;
+    slide1.style.backgroundImage = `url('${profileSlideshowPosters[profileSlideshowIndex]}')`;
+    slide1.style.opacity = 1;
+    slide2.style.opacity = 0;
+
+    let activeSlide = 1;
+
+    profileSlideshowInterval = setInterval(() => {
+        profileSlideshowIndex = (profileSlideshowIndex + 1) % profileSlideshowPosters.length;
+        const nextPosterUrl = profileSlideshowPosters[profileSlideshowIndex];
+
+        if (activeSlide === 1) {
+            slide2.style.backgroundImage = `url('${nextPosterUrl}')`;
+            slide2.style.opacity = 1;
+            slide1.style.opacity = 0;
+            activeSlide = 2;
+        } else {
+            slide1.style.backgroundImage = `url('${nextPosterUrl}')`;
+            slide1.style.opacity = 1;
+            slide2.style.opacity = 0;
+            activeSlide = 1;
+        }
+    }, 4000);
+}
+
+function stopProfileSlideshow() {
+    if (profileSlideshowInterval) {
+        clearInterval(profileSlideshowInterval);
+        profileSlideshowInterval = null;
+    }
 }
 
 function deleteProfile(id) {
