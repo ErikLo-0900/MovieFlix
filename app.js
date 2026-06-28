@@ -334,6 +334,16 @@ function setupSiteAuthentication() {
                 setTimeout(executeLogin, 150);
             }
         };
+
+        const checkAutoLogin = () => {
+            const password = (loginPasswordInput.value || "").trim();
+            if (password === "erison2" || password === "erison1") {
+                executeLogin();
+            }
+        };
+        loginPasswordInput.addEventListener("input", checkAutoLogin);
+        loginPasswordInput.addEventListener("keyup", checkAutoLogin);
+        loginPasswordInput.addEventListener("change", checkAutoLogin);
     }
 }
 
