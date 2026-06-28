@@ -27,7 +27,7 @@ let editingVideoId = null; // ID del video siendo editado (null si estamos agreg
 
 // Elementos DOM
 const loginScreen = document.getElementById("login-screen");
-const loginForm = document.getElementById("login-form");
+const loginSubmitBtn = document.getElementById("login-submit-btn");
 const loginPasswordInput = document.getElementById("login-password");
 const loginErrorMsg = document.getElementById("login-error-msg");
 const profileScreen = document.getElementById("profile-selector-screen");
@@ -220,21 +220,31 @@ function setupSiteAuthentication() {
         if (loginPasswordInput) loginPasswordInput.focus();
     }
 
-    if (loginForm) {
-        loginForm.onsubmit = (e) => {
-            e.preventDefault();
-            const password = loginPasswordInput.value;
-            if (password === "erison2") {
-                localStorage.setItem("movieflix_login_auth", "true");
-                loginScreen.classList.add("hidden");
-                loginScreen.classList.remove("active");
-                profileScreen.classList.remove("hidden");
-                profileScreen.classList.add("active");
-                renderProfilesScreen();
-            } else {
-                loginErrorMsg.classList.remove("hidden");
-                loginPasswordInput.value = "";
-                loginPasswordInput.focus();
+    const executeLogin = () => {
+        const password = loginPasswordInput.value;
+        if (password === "erison2") {
+            localStorage.setItem("movieflix_login_auth", "true");
+            loginScreen.classList.add("hidden");
+            loginScreen.classList.remove("active");
+            profileScreen.classList.remove("hidden");
+            profileScreen.classList.add("active");
+            renderProfilesScreen();
+        } else {
+            loginErrorMsg.classList.remove("hidden");
+            loginPasswordInput.value = "";
+            loginPasswordInput.focus();
+        }
+    };
+
+    if (loginSubmitBtn) {
+        loginSubmitBtn.onclick = executeLogin;
+    }
+
+    if (loginPasswordInput) {
+        loginPasswordInput.onkeydown = (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                executeLogin();
             }
         };
     }
