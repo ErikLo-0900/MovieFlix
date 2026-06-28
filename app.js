@@ -35,6 +35,7 @@ let customVideos = []; // Representa customMovies
 let isManagingProfiles = false;
 let currentSelectedAvatarType = "color";
 let currentSelectedAvatarValue = "purple";
+let currentPlatformFilter = "all";
 
 function renderAvatarHTML(profile, className = "avatar-wrapper") {
     if (!profile) return "";
@@ -808,6 +809,11 @@ function renderVideoRows(filterType = "all") {
     mainContent.innerHTML = "";
     let allVideos = getAllVideos();
 
+    // Aplicar filtro de plataforma/canal
+    if (currentPlatformFilter !== "all") {
+        allVideos = allVideos.filter(v => v.platform === currentPlatformFilter);
+    }
+
     if (filterType === "series") {
         allVideos = allVideos.filter(v => v.type === "series");
     } else if (filterType === "movie") {
@@ -818,10 +824,16 @@ function renderVideoRows(filterType = "all") {
         const emptyRow = document.createElement("div");
         emptyRow.className = "video-row";
         let message = "Aún no hay contenidos agregados en esta sección.";
-        if (filterType === "series") message = "Aún no has agregado ninguna serie al catálogo. ¡Haz clic en 'Añadir Contenido' para agregar tu primera serie!";
-        if (filterType === "movie") message = "Aún no has agregado ninguna película al catálogo. ¡Haz clic en 'Añadir Contenido' para agregar tu primera película!";
+        if (currentPlatformFilter !== "all") {
+            const cardEl = document.querySelector(`.channel-card[data-platform="${currentPlatformFilter}"] .channel-logo-text`);
+            const platformName = cardEl ? cardEl.innerText : currentPlatformFilter.toUpperCase();
+            message = `No hay contenidos disponibles en el canal de "${platformName}" todavía.`;
+        } else {
+            if (filterType === "series") message = "Aún no has agregado ninguna serie al catálogo. ¡Haz clic en 'Añadir Contenido' para agregar tu primera serie!";
+            if (filterType === "movie") message = "Aún no has agregado ninguna película al catálogo. ¡Haz clic en 'Añadir Contenido' para agregar tu primera película!";
+        }
         emptyRow.innerHTML = `
-            <h2 class="row-title"><i data-lucide="info"></i> Catálogo Vacío</h2>
+            <h2 class="row-title"><i data-lucide="info"></i> Canal Vacío</h2>
             <div class="row-empty-message">${message}</div>
         `;
         mainContent.appendChild(emptyRow);
@@ -1257,6 +1269,7 @@ function checkMasterPassword(promptMessage) {
             document.getElementById("video-title").value = video.title;
             document.getElementById("video-type").value = video.type;
             document.getElementById("video-category").value = video.category;
+            document.getElementById("video-platform").value = video.platform || "movieflix";
             document.getElementById("video-year").value = video.year;
             document.getElementById("video-duration").value = video.duration;
             document.getElementById("video-author").value = video.author || "";
@@ -1822,6 +1835,7 @@ function handleAddVideoSubmit(e) {
             title,
             type, // Guardar el tipo
             category,
+            platform: document.getElementById("video-platform").value,
             year,
             url: type === "series" ? "" : (isLocalFile ? "" : url),
             isLocalFile: type === "series" ? false : isLocalFile,
@@ -2535,6 +2549,52 @@ function setupGlobalEvents() {
     profileModalBackdrop.onclick = closeProfileModal;
     profileModalCancelBtn.onclick = closeProfileModal;
     profileForm.onsubmit = handleProfileSubmit;
+
+    // Manejar clics en los Canales de Plataformas (Filtros)
+    const channelCards = document.querySelectorAll(".channel-card");
+    const channelsClearBtn = document.getElementById("channels-clear-btn");
+
+    const updateChannelUI = (activePlatform) => {
+        channelCards.forEach(card => {
+            if (card.dataset.platform === activePlatform) {
+                card.classList.add("active");
+            } else {
+                card.classList.remove("active");
+            }
+        });
+
+        if (activePlatform === "all") {
+            if (channelsClearBtn) channelsClearBtn.classList.add("hidden");
+        } else {
+            if (channelsClearBtn) channelsClearBtn.classList.remove("hidden");
+        }
+    };
+
+    channelCards.forEach(card => {
+        makeElementAutoScrollOnFocus(card);
+
+        card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                card.click();
+            }
+        });
+
+        card.addEventListener("click", () => {
+            const platform = card.dataset.platform;
+            currentPlatformFilter = platform;
+            updateChannelUI(platform);
+            renderVideoRows();
+        });
+    });
+
+    if (channelsClearBtn) {
+        channelsClearBtn.onclick = () => {
+            currentPlatformFilter = "all";
+            updateChannelUI("all");
+            renderVideoRows();
+        };
+    }
 
     const modalAvatarOpts = document.querySelectorAll("#profile-modal .avatar-opt");
     modalAvatarOpts.forEach(opt => {

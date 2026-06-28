@@ -128,6 +128,61 @@
             </div>
         </section>
 
+        <!-- ==================== SECCIÓN DE CANALES (ESTILO AMAZON PRIME) ==================== -->
+        <section class="channels-section">
+            <div class="channels-title-row">
+                <h2 class="channels-title">Canales</h2>
+                <button class="channels-clear-btn hidden" id="channels-clear-btn">
+                    <i data-lucide="x"></i> Limpiar Filtro
+                </button>
+            </div>
+            <div class="channels-grid-container">
+                <div class="channels-grid" id="channels-grid">
+                    <div class="channel-card active" data-platform="all" tabindex="0">
+                        <div class="channel-logo-text">TODOS</div>
+                    </div>
+                    <div class="channel-card" data-platform="netflix" tabindex="0">
+                        <div class="channel-logo-text" style="color: #e50914; font-weight: 900; letter-spacing: -1px;">NETFLIX</div>
+                    </div>
+                    <div class="channel-card" data-platform="prime" tabindex="0">
+                        <div class="channel-logo-text" style="color: #00a8e1; font-weight: 800; font-style: italic;">prime video</div>
+                    </div>
+                    <div class="channel-card" data-platform="hbo" tabindex="0">
+                        <div class="channel-logo-text" style="font-weight: 800; font-family: sans-serif; letter-spacing: 1px; color: #fff;">HBO max</div>
+                    </div>
+                    <div class="channel-card" data-platform="disney" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; font-weight: bold; font-family: serif; letter-spacing: -1px;">Disney+</div>
+                    </div>
+                    <div class="channel-card" data-platform="vix" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; font-weight: 900; font-style: italic; letter-spacing: -1px;">ViX</div>
+                    </div>
+                    <div class="channel-card" data-platform="paramount" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; font-weight: 600; font-family: cursive;">Paramount+</div>
+                    </div>
+                    <div class="channel-card" data-platform="appletv" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 0.15rem; font-weight: bold; font-family: sans-serif;">
+                            <svg viewBox="0 0 170 170" style="width: 14px; height: 14px; fill: currentColor; transform: translateY(-1px);"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.34.13-9.13-1.92-14.37-6.15-2.82-2.39-6.53-6.86-11.13-13.41-8.9-12.87-15.43-27.75-19.61-44.64C7.15 87.72 12 73.16 25.13 61.16c6.23-5.69 13.26-8.56(21.09-8.56 5.38 0 10.96 1.54 16.74 4.62 5.77 3.08 9.62 4.62 11.53 4.62 1.63 0 5.48-1.5 11.55-4.5 6.07-3 11.45-4.43 16.15-4.31 16.27.35 28.53 6.35 36.8 17.97-15.02 9.07-22.38 21.43-22.09 37.1 0 11.66 4.37 21.46 13.1 29.41 8.74 7.96 19 12.18 30.82 12.66.12 0 .12.12 0 .12zM119.22 35.34c0-7.39-2.58-14.13-7.72-20.2-5.14-6.07-11.54-9.92-19.22-11.54 0-.12-.12-.12-.12-.12-.12.4-.2.8-.2 1.2 0 7.15 2.65 13.79 7.97 19.92 5.3 6.13 11.83 9.94 19.56 11.42.06 0 .06-.06.06-.06.06-.46.12-.92.12-1.38z"/></svg>tv
+                        </div>
+                    </div>
+                    <div class="channel-card" data-platform="universal" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px;">UNIVERSAL+</div>
+                    </div>
+                    <div class="channel-card" data-platform="fox" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; font-weight: 900; font-size: 0.65rem; border: 1.5px solid #fff; padding: 0.1rem 0.3rem; border-radius: 20px; font-style: italic; white-space: nowrap;">FOX SPORTS</div>
+                    </div>
+                    <div class="channel-card" data-platform="mgm" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; font-weight: 900; letter-spacing: 1px;">MGM+</div>
+                    </div>
+                    <div class="channel-card" data-platform="sony" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; font-weight: bold; font-size: 0.7rem; border: 1px solid #fff; padding: 0.1rem 0.25rem; white-space: nowrap;">SONY ONE</div>
+                    </div>
+                    <div class="channel-card" data-platform="drive" tabindex="0">
+                        <div class="channel-logo-text" style="color: #fff; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;"><i data-lucide="hard-drive" style="width: 14px; height: 14px;"></i> Drive</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- CONTENEDOR DE FILAS DE PELÍCULAS (CAROUSELS) -->
         <main class="main-content" id="main-content">
             <!-- Se inyectan las filas dinámicamente desde app.js -->
@@ -269,6 +324,24 @@
                             <option value="Documental">Documental</option>
                             <option value="Animacion">Animación y Anime</option>
                             <option value="Infantil">Familiar e Infantil</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="video-platform">Plataforma / Canal <span class="required">*</span></label>
+                        <select id="video-platform" required>
+                            <option value="movieflix">MovieFlix (Propio)</option>
+                            <option value="netflix">Netflix</option>
+                            <option value="prime">Prime Video</option>
+                            <option value="hbo">HBO Max</option>
+                            <option value="disney">Disney+</option>
+                            <option value="vix">ViX</option>
+                            <option value="paramount">Paramount+</option>
+                            <option value="appletv">Apple TV</option>
+                            <option value="universal">Universal+</option>
+                            <option value="fox">Fox Sports</option>
+                            <option value="mgm">MGM+</option>
+                            <option value="sony">Sony One</option>
+                            <option value="drive">Google Drive</option>
                         </select>
                     </div>
                 </div>

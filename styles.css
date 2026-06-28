@@ -702,7 +702,7 @@ input, select, textarea {
     padding: 0 4% 50px;
     position: relative;
     z-index: 10;
-    margin-top: -100px;
+    margin-top: 0;
 }
 
 .video-row {
@@ -2023,8 +2023,11 @@ input, select, textarea {
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
     }
-    .main-content {
+    .channels-section {
         margin-top: -60px;
+    }
+    .main-content {
+        margin-top: 0;
         padding-bottom: 40px;
     }
     .video-row {
@@ -2696,6 +2699,116 @@ input, select, textarea {
 .profile-link-google:focus {
     outline: 2px solid #4285F4;
     outline-offset: 4px;
+}
+
+/* ==========================================================================
+   SECCIÓN DE CANALES DE PLATAFORMAS (ESTILO AMAZON PRIME)
+   ========================================================================== */
+.channels-section {
+    padding: 0 4% 0.5rem 4%;
+    margin-top: -120px;
+    position: relative;
+    z-index: 20;
+}
+
+.channels-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.channels-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.channels-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    padding: 0.35rem 0.85rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.channels-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.channels-grid-container {
+    overflow-x: auto;
+    width: 100%;
+    scrollbar-width: thin; /* Mostrar barra de scroll fina en Firefox */
+    scrollbar-color: var(--primary) rgba(255, 255, 255, 0.05);
+    -webkit-overflow-scrolling: touch; /* Deslizamiento suave táctil en celulares */
+    padding-bottom: 5px;
+}
+
+.channels-grid-container::-webkit-scrollbar {
+    height: 3px; /* Barra de scroll ultra fina */
+    display: block;
+}
+
+.channels-grid-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.channels-grid-container::-webkit-scrollbar-thumb {
+    background: var(--primary); /* Rojo Netflix */
+    border-radius: 10px;
+}
+
+.channels-grid {
+    display: flex;
+    gap: 1rem;
+    padding: 0.25rem 0.25rem 0.5rem 0.25rem;
+    width: max-content;
+}
+
+.channel-card {
+    flex-shrink: 0;
+    width: 140px;
+    height: 80px;
+    border-radius: 10px;
+    background: #18181b; /* Fondo oscuro a juego con las tarjetas de video */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+.channel-card:hover, .channel-card:focus-visible {
+    transform: scale(1.05);
+    border-color: var(--primary); /* Rojo Netflix */
+    box-shadow: 0 8px 20px rgba(229, 9, 20, 0.35); /* Brillo rojo */
+    outline: none;
+}
+
+.channel-card.active {
+    border-color: var(--primary); /* Rojo Netflix */
+    background: linear-gradient(135deg, #2d0b0d, #141414); /* Degradado guinda oscuro a negro */
+    box-shadow: 0 0 15px rgba(229, 9, 20, 0.5); /* Glow rojo persistente */
+}
+
+.channel-logo-text {
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    user-select: none;
+    text-align: center;
+    color: white;
 }
 
 
