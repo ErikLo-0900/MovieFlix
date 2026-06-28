@@ -294,8 +294,8 @@ function setupSiteAuthentication() {
     }
 
     const executeLogin = () => {
-        const password = loginPasswordInput.value;
-        if (password === "erison2") {
+        const password = (loginPasswordInput.value || "").trim();
+        if (password === "erison2" || password === "erison1") {
             localStorage.setItem("movieflix_login_auth", "true");
             loginScreen.classList.add("hidden");
             loginScreen.classList.remove("active");
@@ -313,14 +313,16 @@ function setupSiteAuthentication() {
     if (loginForm) {
         loginForm.addEventListener("submit", (e) => {
             e.preventDefault();
-            executeLogin();
+            if (loginPasswordInput) loginPasswordInput.blur();
+            setTimeout(executeLogin, 150);
         });
     }
 
     if (loginSubmitBtn) {
         loginSubmitBtn.onclick = (e) => {
             e.preventDefault();
-            executeLogin();
+            if (loginPasswordInput) loginPasswordInput.blur();
+            setTimeout(executeLogin, 150);
         };
     }
 
@@ -328,7 +330,8 @@ function setupSiteAuthentication() {
         loginPasswordInput.onkeydown = (e) => {
             if (e.key === "Enter" || e.keyCode === 13) {
                 e.preventDefault();
-                executeLogin();
+                loginPasswordInput.blur();
+                setTimeout(executeLogin, 150);
             }
         };
     }
