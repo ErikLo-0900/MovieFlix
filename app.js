@@ -1976,6 +1976,18 @@ function getDirectStreamUrl(url) {
     return url;
 }
 
+function loadHlsLibrary(callback) {
+    if (window.Hls) {
+        callback();
+        return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/hls.js@latest";
+    script.onload = callback;
+    script.onerror = () => alert("No se pudo cargar el reproductor de televisión en vivo.");
+    document.head.appendChild(script);
+}
+
 function playVideo(video) {
     // Si es una serie, reproducir el primer capítulo por defecto o el último visto
     if (video.type === "series") {
@@ -2004,7 +2016,8 @@ function playVideo(video) {
                 author: video.author,
                 category: video.category,
                 seriesTitle: video.title,
-                seriesId: video.id
+                seriesId: video.id,
+                platform: video.platform
             };
             playVideo(playableEpisode);
         } else {
@@ -2019,6 +2032,65 @@ function playVideo(video) {
     recordHistoryStart(video);
     
     const iframeContainer = document.getElementById("universal-iframe-container");
+    const isHls = video.url && (video.url.toLowerCase().includes(".m3u8") || video.platform === "tv");
+
+    if (isHls) {
+        playerContainer.classList.remove("iframe-mode");
+        iframeContainer.innerHTML = "";
+        
+        if (video.seriesTitle) {
+            playerTitleDisplay.innerText = video.seriesTitle;
+            playerSubtitleDisplay.innerText = video.title;
+        } else {
+            playerTitleDisplay.innerText = video.title;
+            const catName = GENDER_NAMES[video.category] || video.category;
+            playerSubtitleDisplay.innerText = `${catName} • TV EN VIVO`;
+        }
+
+        playerContainer.classList.remove("hidden");
+        playerLoader.style.display = "flex";
+
+        loadHlsLibrary(() => {
+            playerLoader.style.display = "none";
+            
+            if (window.hlsInstance) {
+                window.hlsInstance.destroy();
+                window.hlsInstance = null;
+            }
+
+            if (Hls.isSupported()) {
+                window.hlsInstance = new Hls({
+                    maxMaxBufferLength: 10,
+                    enableWorker: true
+                });
+                window.hlsInstance.loadSource(video.url);
+                window.hlsInstance.attachMedia(videoElement);
+                window.hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                    videoElement.play();
+                });
+                window.hlsInstance.on(Hls.Events.ERROR, function (event, data) {
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                window.hlsInstance.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                window.hlsInstance.recoverMediaError();
+                                break;
+                        }
+                    }
+                });
+            } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                videoElement.src = video.url;
+                videoElement.play();
+            } else {
+                alert("Este navegador no es compatible con transmisiones de TV en vivo.");
+            }
+        });
+        
+        resetControlsTimeout();
+        return;
+    }
     const youtubeId = getYouTubeId(video.url);
     const driveEmbedUrl = getGoogleDriveEmbedUrl(video.url);
 
@@ -2248,6 +2320,11 @@ function handleVideoEnded() {
 function exitVideoPlayer() {
     videoElement.pause();
     videoElement.src = "";
+    
+    if (window.hlsInstance) {
+        window.hlsInstance.destroy();
+        window.hlsInstance = null;
+    }
     
     // Detener e iframe si existe para apagar el sonido de YouTube
     const iframeContainer = document.getElementById("universal-iframe-container");
