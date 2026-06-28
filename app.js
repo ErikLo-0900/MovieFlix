@@ -253,7 +253,7 @@ const GENDER_NAMES = {
 // 4. FUNCIONES DE INICIALIZACIÓN
 // ==========================================================================
 
-async function initApp() {
+function initApp() {
     // Inicializar iconos
     lucide.createIcons();
     
@@ -267,14 +267,14 @@ async function initApp() {
     setupGlobalEvents();
 
     // Sincronizar con el servidor de forma asíncrona
-    await syncWithServer();
-
-    // Registrar Service Worker para soporte PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
-            .catch(err => console.error('Error al registrar el Service Worker:', err));
-    }
+    syncWithServer().then(() => {
+        // Registrar Service Worker para soporte PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
+                .catch(err => console.error('Error al registrar el Service Worker:', err));
+        }
+    });
 }
 
 function setupSiteAuthentication() {
@@ -347,51 +347,54 @@ function setupSiteAuthentication() {
     }
 }
 
-async function syncWithServer() {
+function syncWithServer() {
     if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
-        return;
+        return Promise.resolve();
     }
-    try {
-        // 1. Cargar películas del servidor (de manera relativa para ser compatible con GitHub Pages)
-        const responseMovies = await fetch('movies_db.json');
-        if (responseMovies.status === 200) {
-            const serverMovies = await responseMovies.json();
-            if (Array.isArray(serverMovies)) {
-                customVideos = serverMovies;
-                localStorage.setItem("movieflix_custom_movies", JSON.stringify(customVideos));
+    
+    return fetch('movies_db.json')
+        .then(responseMovies => {
+            if (responseMovies.status === 200) {
+                return responseMovies.json().then(serverMovies => {
+                    if (Array.isArray(serverMovies)) {
+                        customVideos = serverMovies;
+                        localStorage.setItem("movieflix_custom_movies", JSON.stringify(customVideos));
+                    }
+                });
+            } else if (responseMovies.status === 404) {
+                if (customVideos.length > 0) {
+                    saveCustomVideos();
+                }
             }
-        } else if (responseMovies.status === 404) {
-            // El archivo no existe en el servidor. Inicializar el servidor si tenemos datos locales.
-            if (customVideos.length > 0) {
-                saveCustomVideos();
+        })
+        .then(() => {
+            return fetch('profiles_db.json');
+        })
+        .then(responseProfiles => {
+            if (responseProfiles.status === 200) {
+                return responseProfiles.json().then(serverProfiles => {
+                    if (Array.isArray(serverProfiles)) {
+                        profiles = serverProfiles;
+                        localStorage.setItem("movieflix_profiles", JSON.stringify(profiles));
+                    }
+                });
+            } else if (responseProfiles.status === 404) {
+                if (profiles.length > 0) {
+                    saveProfiles();
+                }
             }
-        }
-
-        // 2. Cargar perfiles del servidor (de manera relativa)
-        const responseProfiles = await fetch('profiles_db.json');
-        if (responseProfiles.status === 200) {
-            const serverProfiles = await responseProfiles.json();
-            if (Array.isArray(serverProfiles)) {
-                profiles = serverProfiles;
-                localStorage.setItem("movieflix_profiles", JSON.stringify(profiles));
+        })
+        .then(() => {
+            if (currentProfile) {
+                renderVideoRows();
+                setupHeroBanner();
+            } else {
+                renderProfilesScreen();
             }
-        } else if (responseProfiles.status === 404) {
-            // El archivo no existe en el servidor. Inicializar el servidor si tenemos datos locales.
-            if (profiles.length > 0) {
-                saveProfiles();
-            }
-        }
-
-        // 3. Volver a renderizar la vista actual con los datos frescos
-        if (currentProfile) {
-            renderVideoRows();
-            setupHeroBanner();
-        } else {
-            renderProfilesScreen();
-        }
-    } catch (err) {
-        console.warn("La sincronización asíncrona con el servidor falló (servidor estático o sin API):", err);
-    }
+        })
+        .catch(err => {
+            console.warn("La sincronización asíncrona con el servidor falló (servidor estático o sin API):", err);
+        });
 }
 
 function checkMasterPassword(promptMessage) {
