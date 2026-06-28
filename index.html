@@ -358,17 +358,46 @@
             <h2 class="form-modal-title" id="profile-modal-title">Crear Perfil</h2>
             <form id="profile-form">
                 <input type="hidden" id="profile-edit-id">
-                <div class="form-group flex-center-col">
-                    <label>Elige un Avatar</label>
-                    <div class="avatar-selection-wrapper">
-                        <!-- Opciones de Avatares representados por colores premium con gradientes -->
-                        <div class="avatar-options-grid">
-                            <div class="avatar-opt selected" data-color="purple" style="background: linear-gradient(135deg, #a855f7, #6b21a8);"></div>
-                            <div class="avatar-opt" data-color="blue" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"></div>
-                            <div class="avatar-opt" data-color="red" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"></div>
-                            <div class="avatar-opt" data-color="green" style="background: linear-gradient(135deg, #10b981, #047857);"></div>
-                            <div class="avatar-opt" data-color="yellow" style="background: linear-gradient(135deg, #f59e0b, #b45309);"></div>
-                            <div class="avatar-opt" data-color="pink" style="background: linear-gradient(135deg, #ec4899, #be185d);"></div>
+                <div class="form-group flex-center-col" style="gap: 1rem;">
+                    <div style="width: 100%;">
+                        <label>Elige un Color</label>
+                        <div class="avatar-selection-wrapper">
+                            <div class="avatar-options-grid" id="color-options-grid">
+                                <div class="avatar-opt selected" data-type="color" data-value="purple" style="background: linear-gradient(135deg, #a855f7, #6b21a8);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="blue" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="red" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="green" style="background: linear-gradient(135deg, #10b981, #047857);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="yellow" style="background: linear-gradient(135deg, #f59e0b, #b45309);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="pink" style="background: linear-gradient(135deg, #ec4899, #be185d);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="orange" style="background: linear-gradient(135deg, #f97316, #c2410c);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="cyan" style="background: linear-gradient(135deg, #06b6d4, #0891b2);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="teal" style="background: linear-gradient(135deg, #14b8a6, #0f766e);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="indigo" style="background: linear-gradient(135deg, #6366f1, #4338ca);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="rose" style="background: linear-gradient(135deg, #f43f5e, #be123c);"></div>
+                                <div class="avatar-opt" data-type="color" data-value="slate" style="background: linear-gradient(135deg, #64748b, #334155);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="width: 100%;">
+                        <label>Elige un Personaje</label>
+                        <div class="avatar-selection-wrapper">
+                            <div class="avatar-options-grid" id="image-options-grid" style="grid-template-columns: repeat(4, 1fr); max-width: 250px;">
+                                <div class="avatar-opt" data-type="image" data-value="popcorn" style="background-image: url('Portadas/avatar_popcorn.png'); background-size: cover; background-position: center; border-radius: var(--radius-sm);"></div>
+                                <div class="avatar-opt" data-type="image" data-value="glasses" style="background-image: url('Portadas/avatar_glasses.png'); background-size: cover; background-position: center; border-radius: var(--radius-sm);"></div>
+                                <div class="avatar-opt" data-type="image" data-value="dragon" style="background-image: url('Portadas/avatar_dragon.png'); background-size: cover; background-position: center; border-radius: var(--radius-sm);"></div>
+                                <div class="avatar-opt" data-type="image" data-value="robot" style="background-image: url('Portadas/avatar_robot.png'); background-size: cover; background-position: center; border-radius: var(--radius-sm);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="width: 100%;">
+                        <label>Sube tu propio Avatar</label>
+                        <div class="avatar-custom-wrapper" style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+                            <div class="avatar-opt" id="custom-avatar-preview" data-type="custom" data-value="" style="background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: var(--radius-sm); cursor: pointer;" title="Subir foto">
+                                <i data-lucide="upload" style="width: 18px; height: 18px; color: var(--text-muted);"></i>
+                            </div>
+                            <input type="file" id="profile-custom-avatar-input" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary" id="btn-upload-avatar" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">Seleccionar Imagen</button>
+                            <span id="custom-avatar-filename" style="font-size: 0.75rem; color: var(--text-muted); max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Ningún archivo</span>
                         </div>
                     </div>
                 </div>

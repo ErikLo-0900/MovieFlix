@@ -5,14 +5,27 @@
 // 1. DATO SEMILLA DE PELÍCULAS Y TRÁILERS
 const DEFAULT_VIDEOS = [];
 
-// 2. PALETA DE COLORES PARA AVATARES
+// 2. PALETA DE COLORES Y AVATARES PREDETERMINADOS
 const AVATAR_COLORS = {
     purple: "linear-gradient(135deg, #a855f7, #6b21a8)",
     blue: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
     red: "linear-gradient(135deg, #ef4444, #b91c1c)",
     green: "linear-gradient(135deg, #10b981, #047857)",
     yellow: "linear-gradient(135deg, #f59e0b, #b45309)",
-    pink: "linear-gradient(135deg, #ec4899, #be185d)"
+    pink: "linear-gradient(135deg, #ec4899, #be185d)",
+    orange: "linear-gradient(135deg, #f97316, #c2410c)",
+    cyan: "linear-gradient(135deg, #06b6d4, #0891b2)",
+    teal: "linear-gradient(135deg, #14b8a6, #0f766e)",
+    indigo: "linear-gradient(135deg, #6366f1, #4338ca)",
+    rose: "linear-gradient(135deg, #f43f5e, #be123c)",
+    slate: "linear-gradient(135deg, #64748b, #334155)"
+};
+
+const DEFAULT_AVATAR_IMAGES = {
+    popcorn: "Portadas/avatar_popcorn.png",
+    glasses: "Portadas/avatar_glasses.png",
+    dragon: "Portadas/avatar_dragon.png",
+    robot: "Portadas/avatar_robot.png"
 };
 
 // 3. ESTADOS DE LA APLICACIÓN
@@ -20,7 +33,66 @@ let profiles = [];
 let activeProfile = null;
 let customVideos = []; // Representa customMovies
 let isManagingProfiles = false;
-let currentSelectedAvatarColor = "purple";
+let currentSelectedAvatarType = "color";
+let currentSelectedAvatarValue = "purple";
+
+function renderAvatarHTML(profile, className = "avatar-wrapper") {
+    if (!profile) return "";
+    
+    const type = profile.avatarType || "color";
+    const value = profile.avatarValue || profile.color || "purple";
+    
+    if (type === "image") {
+        const src = DEFAULT_AVATAR_IMAGES[value] || "Portadas/avatar_popcorn.png";
+        return `<div class="${className}"><img src="${src}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>`;
+    }
+    if (type === "custom" && value) {
+        return `<div class="${className}"><img src="${value}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>`;
+    }
+    
+    const bg = AVATAR_COLORS[value] || AVATAR_COLORS.purple;
+    const initial = (profile.name || "U").charAt(0).toUpperCase();
+    
+    let fontSize = "1.8rem";
+    if (className.includes("nav")) fontSize = "0.9rem";
+    else if (className.includes("sidebar")) fontSize = "1.1rem";
+    else if (className.includes("dropdown")) fontSize = "0.75rem";
+    
+    return `
+        <div class="${className}" style="background: ${bg}; display: flex; align-items: center; justify-content: center;">
+            <span style="color: white; font-size: ${fontSize}; font-weight: 700; user-select: none;">${initial}</span>
+        </div>
+    `;
+}
+
+function setAvatarOnElement(element, profile, typeSize = "nav") {
+    if (!element || !profile) return;
+    
+    const type = profile.avatarType || "color";
+    const value = profile.avatarValue || profile.color || "purple";
+    
+    element.style.background = "none";
+    element.style.display = "flex";
+    element.style.alignItems = "center";
+    element.style.justifyContent = "center";
+    
+    if (type === "image") {
+        const src = DEFAULT_AVATAR_IMAGES[value] || "Portadas/avatar_popcorn.png";
+        element.innerHTML = `<img src="${src}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">`;
+    } else if (type === "custom" && value) {
+        element.innerHTML = `<img src="${value}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">`;
+    } else {
+        const bg = AVATAR_COLORS[value] || AVATAR_COLORS.purple;
+        const initial = (profile.name || "U").charAt(0).toUpperCase();
+        element.style.background = bg;
+        let fontSize = "1.8rem";
+        if (typeSize === "nav") fontSize = "0.9rem";
+        else if (typeSize === "sidebar") fontSize = "1.1rem";
+        else if (typeSize === "dropdown") fontSize = "0.75rem";
+        element.innerHTML = `<span style="color: white; font-size: ${fontSize}; font-weight: 700; user-select: none;">${initial}</span>`;
+    }
+}
+
 let sessionVideoBlobs = {};
 let formSeasons = []; // Temporadas y capítulos en el formulario actual
 let editingVideoId = null; // ID del video siendo editado (null si estamos agregando)
@@ -386,8 +458,8 @@ function renderProfilesScreen() {
         const card = document.createElement("div");
         card.className = "profile-card";
         card.innerHTML = `
-            <div class="avatar-wrapper" style="background: ${AVATAR_COLORS[profile.color] || AVATAR_COLORS.purple}">
-                <div class="avatar-display">${profile.name.charAt(0).toUpperCase()}</div>
+            <div style="position: relative;">
+                ${renderAvatarHTML(profile, "avatar-wrapper")}
                 <div class="profile-action-overlay">
                     <button class="profile-action-btn edit-btn" data-id="${profile.id}">
                         <i data-lucide="pencil" style="width:16px;height:16px;"></i>
@@ -440,14 +512,12 @@ function selectProfile(profileId) {
 
     // Configurar la interfaz principal
     navProfileName.innerText = activeProfile.name;
-    navProfileAvatar.style.background = AVATAR_COLORS[activeProfile.color] || AVATAR_COLORS.purple;
-    navProfileAvatar.innerHTML = `<span style="color:white; font-size: 0.9rem; font-weight:700; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${activeProfile.name.charAt(0).toUpperCase()}</span>`;
+    setAvatarOnElement(navProfileAvatar, activeProfile, "nav");
 
     // Configurar la interfaz del sidebar móvil
     if (sidebarProfileName && sidebarProfileAvatar) {
         sidebarProfileName.innerText = activeProfile.name;
-        sidebarProfileAvatar.style.background = AVATAR_COLORS[activeProfile.color] || AVATAR_COLORS.purple;
-        sidebarProfileAvatar.innerHTML = `<span style="color:white; font-size: 1.1rem; font-weight:700; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${activeProfile.name.charAt(0).toUpperCase()}</span>`;
+        setAvatarOnElement(sidebarProfileAvatar, activeProfile, "sidebar");
     }
 
     // Cambiar pantalla
@@ -480,29 +550,55 @@ function deleteProfile(id) {
 }
 
 function openProfileModal(profile = null) {
+    const customAvatarInput = document.getElementById("profile-custom-avatar-input");
+    const customAvatarPreview = document.getElementById("custom-avatar-preview");
+    const customAvatarFilename = document.getElementById("custom-avatar-filename");
+    
+    if (customAvatarInput) customAvatarInput.value = "";
+    if (customAvatarFilename) customAvatarFilename.innerText = "Ningún archivo";
+    if (customAvatarPreview) {
+        customAvatarPreview.innerHTML = `<i data-lucide="upload" style="width: 18px; height: 18px; color: var(--text-muted);"></i>`;
+        customAvatarPreview.style.backgroundImage = "none";
+        customAvatarPreview.dataset.value = "";
+    }
+    
     if (profile) {
-        // Editar
         document.getElementById("profile-modal-title").innerText = "Editar Perfil";
         profileNameInput.value = profile.name;
         profileEditIdInput.value = profile.id;
-        currentSelectedAvatarColor = profile.color;
+        
+        currentSelectedAvatarType = profile.avatarType || "color";
+        currentSelectedAvatarValue = profile.avatarValue || profile.color || "purple";
     } else {
-        // Crear nuevo
         document.getElementById("profile-modal-title").innerText = "Crear Perfil";
         profileNameInput.value = "";
         profileEditIdInput.value = "";
-        currentSelectedAvatarColor = "purple";
+        
+        currentSelectedAvatarType = "color";
+        currentSelectedAvatarValue = "purple";
     }
 
-    // Actualizar selección visual de colores de avatar
-    avatarOpts.forEach(opt => {
-        if (opt.dataset.color === currentSelectedAvatarColor) {
+    if (currentSelectedAvatarType === "custom" && customAvatarPreview) {
+        customAvatarPreview.innerHTML = "";
+        customAvatarPreview.style.backgroundImage = `url('${currentSelectedAvatarValue}')`;
+        customAvatarPreview.style.backgroundSize = "cover";
+        customAvatarPreview.style.backgroundPosition = "center";
+        customAvatarPreview.dataset.value = currentSelectedAvatarValue;
+        customAvatarFilename.innerText = "Imagen subida";
+    }
+
+    const modalAvatarOpts = document.querySelectorAll("#profile-modal .avatar-opt");
+    modalAvatarOpts.forEach(opt => {
+        const type = opt.dataset.type;
+        const val = opt.dataset.value;
+        if (type === currentSelectedAvatarType && val === currentSelectedAvatarValue) {
             opt.classList.add("selected");
         } else {
             opt.classList.remove("selected");
         }
     });
 
+    lucide.createIcons();
     profileModal.classList.remove("hidden");
     profileNameInput.focus();
 }
@@ -519,18 +615,20 @@ function handleProfileSubmit(e) {
     if (!name) return;
 
     if (editId) {
-        // Actualizar existente
         const profile = profiles.find(p => p.id === editId);
         if (profile) {
             profile.name = name;
-            profile.color = currentSelectedAvatarColor;
+            profile.avatarType = currentSelectedAvatarType;
+            profile.avatarValue = currentSelectedAvatarValue;
+            profile.color = currentSelectedAvatarType === "color" ? currentSelectedAvatarValue : "purple";
         }
     } else {
-        // Crear nuevo
         const newProfile = {
             id: "p_" + Date.now(),
             name: name,
-            color: currentSelectedAvatarColor,
+            avatarType: currentSelectedAvatarType,
+            avatarValue: currentSelectedAvatarValue,
+            color: currentSelectedAvatarType === "color" ? currentSelectedAvatarValue : "purple",
             favorites: [],
             history: []
         };
@@ -541,8 +639,8 @@ function handleProfileSubmit(e) {
     closeProfileModal();
     renderProfilesScreen();
 
-    // Si modificamos el perfil activo, actualizar UI
     if (activeProfile && activeProfile.id === editId) {
+        activeProfile = profiles.find(p => p.id === editId);
         selectProfile(editId);
     }
 }
@@ -555,9 +653,7 @@ function updateDropdownProfiles() {
         const item = document.createElement("div");
         item.className = "dropdown-profile-item";
         item.innerHTML = `
-            <div class="dropdown-avatar" style="background: ${AVATAR_COLORS[profile.color]}">
-                <span style="color:white; font-size: 0.75rem; font-weight:700; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${profile.name.charAt(0).toUpperCase()}</span>
-            </div>
+            <div class="dropdown-avatar" id="drop-avatar-${profile.id}"></div>
             <span>${profile.name}</span>
         `;
         item.addEventListener("click", () => {
@@ -565,6 +661,9 @@ function updateDropdownProfiles() {
             selectProfile(profile.id);
         });
         dropdownProfilesList.appendChild(item);
+
+        const dropAvatar = item.querySelector(`#drop-avatar-${profile.id}`);
+        setAvatarOnElement(dropAvatar, profile, "dropdown");
     });
 }
 
@@ -2437,13 +2536,68 @@ function setupGlobalEvents() {
     profileModalCancelBtn.onclick = closeProfileModal;
     profileForm.onsubmit = handleProfileSubmit;
 
-    avatarOpts.forEach(opt => {
+    const modalAvatarOpts = document.querySelectorAll("#profile-modal .avatar-opt");
+    modalAvatarOpts.forEach(opt => {
         opt.addEventListener("click", () => {
-            avatarOpts.forEach(o => o.classList.remove("selected"));
+            modalAvatarOpts.forEach(o => o.classList.remove("selected"));
             opt.classList.add("selected");
-            currentSelectedAvatarColor = opt.dataset.color;
+            
+            if (opt.id === "custom-avatar-preview") {
+                if (opt.dataset.value) {
+                    currentSelectedAvatarType = "custom";
+                    currentSelectedAvatarValue = opt.dataset.value;
+                } else {
+                    document.getElementById("profile-custom-avatar-input").click();
+                }
+            } else {
+                currentSelectedAvatarType = opt.dataset.type || "color";
+                currentSelectedAvatarValue = opt.dataset.value || "purple";
+            }
         });
     });
+
+    const btnUploadAvatar = document.getElementById("btn-upload-avatar");
+    const customAvatarInput = document.getElementById("profile-custom-avatar-input");
+    const customAvatarPreview = document.getElementById("custom-avatar-preview");
+    const customAvatarFilename = document.getElementById("custom-avatar-filename");
+
+    if (btnUploadAvatar && customAvatarInput) {
+        btnUploadAvatar.onclick = (e) => {
+            e.preventDefault();
+            customAvatarInput.click();
+        };
+    }
+
+    if (customAvatarInput) {
+        customAvatarInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (customAvatarFilename) {
+                customAvatarFilename.innerText = file.name;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const base64Url = event.target.result;
+                
+                if (customAvatarPreview) {
+                    customAvatarPreview.innerHTML = "";
+                    customAvatarPreview.style.backgroundImage = `url('${base64Url}')`;
+                    customAvatarPreview.style.backgroundSize = "cover";
+                    customAvatarPreview.style.backgroundPosition = "center";
+                    customAvatarPreview.dataset.value = base64Url;
+                    
+                    modalAvatarOpts.forEach(o => o.classList.remove("selected"));
+                    customAvatarPreview.classList.add("selected");
+                }
+                
+                currentSelectedAvatarType = "custom";
+                currentSelectedAvatarValue = base64Url;
+            };
+            reader.readAsDataURL(file);
+        };
+    }
 
     searchToggleBtn.addEventListener("click", () => {
         const box = document.getElementById("search-box");
