@@ -2047,20 +2047,40 @@ function getGoogleDriveEmbedUrl(url) {
 function getEmbeddableUrl(url) {
     if (!url) return null;
     
-    // 1. YouTube
+    // 1. Auto-decodificar Base64 de Cuevana si viene en el parámetro ?v= o &v=
+    if (url.includes("?v=") || url.includes("&v=")) {
+        const match = url.match(/[?&]v=([^&]+)/);
+        if (match && match[1]) {
+            try {
+                // atob decodifica Base64 en JavaScript
+                const decoded = atob(match[1]);
+                if (decoded.startsWith("http")) {
+                    return getEmbeddableUrl(decoded); // Recursión para procesar el enlace limpio decodificado
+                }
+            } catch (e) {
+                console.error("Error al decodificar URL Base64 de Cuevana:", e);
+            }
+        }
+    }
+    
+    // 2. YouTube
     const youtubeId = getYouTubeId(url);
     if (youtubeId) {
         return `https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1&rel=0`;
     }
     
-    // 2. Google Drive
+    // 3. Google Drive
     const driveEmbedUrl = getGoogleDriveEmbedUrl(url);
     if (driveEmbedUrl) {
         return driveEmbedUrl;
     }
     
-    // 3. Servidores comunes de streaming de terceros (Cuevana, etc.)
-    const streamingHosts = ["streamwish", "streamtape", "mixdrop", "fembed", "upstream", "ok.ru", "voex", "dood", "filemoon", "waaw", "cuevana"];
+    // 4. Servidores comunes de streaming de terceros (Cuevana, etc.)
+    const streamingHosts = [
+        "streamwish", "streamtape", "mixdrop", "fembed", "upstream", 
+        "ok.ru", "voex", "dood", "filemoon", "waaw", "cuevana",
+        "vsembed", "vidlink", "videasy", "vidapi"
+    ];
     const lowerUrl = url.toLowerCase();
     const isStreamingHost = streamingHosts.some(host => lowerUrl.includes(host));
     
