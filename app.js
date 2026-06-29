@@ -2205,12 +2205,12 @@ function getEmbeddableUrl(url) {
     const streamingHosts = [
         "streamwish", "streamtape", "mixdrop", "fembed", "upstream", 
         "ok.ru", "voex", "dood", "filemoon", "waaw", "cuevana",
-        "vsembed", "vidlink", "videasy", "vidapi"
+        "vsembed", "vidlink", "videasy", "vidapi", "tiktokshopping", "martinshop"
     ];
     const lowerUrl = url.toLowerCase();
     const isStreamingHost = streamingHosts.some(host => lowerUrl.includes(host));
     
-    if (isStreamingHost || lowerUrl.includes("/embed/") || lowerUrl.includes("/e/")) {
+    if (isStreamingHost || lowerUrl.includes("/embed/") || lowerUrl.includes("/e/") || (lowerUrl.startsWith("http") && lowerUrl.includes("/v/"))) {
         return url;
     }
     
@@ -2354,13 +2354,19 @@ function playVideo(video) {
 
     if (embedUrl) {
         // Modo YouTube, Google Drive o Servidores de Streaming Externos (Cuevana/etc.)
+        // Determinar si debemos aplicar el sandbox (se desactiva para hosts que lo bloquean explícitamente como tiktokshopping o martinshop)
+        const lowerEmbedUrl = embedUrl.toLowerCase();
+        const disableSandbox = lowerEmbedUrl.includes("tiktokshopping") || lowerEmbedUrl.includes("martinshop");
+        const sandboxAttr = disableSandbox ? "" : `sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-popups-to-escape-sandbox"`;
+
         playerContainer.classList.add("iframe-mode");
         iframeContainer.innerHTML = `
             <iframe 
                 src="${embedUrl}" 
                 frameborder="0" 
-                allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                allow="autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" 
                 allowfullscreen 
+                ${sandboxAttr}
                 style="width: 100%; height: 100%;">
             </iframe>
         `;
