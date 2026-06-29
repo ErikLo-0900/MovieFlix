@@ -643,6 +643,56 @@
         </div>
     </div>
 
+    <!-- BARRA DE NAVEGACIÓN INFERIOR PARA MÓVILES (ESTILO NETFLIX) -->
+    <div class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <button class="mobile-bottom-nav-item active" id="mobile-nav-home">
+            <i data-lucide="home"></i>
+            <span>Inicio</span>
+        </button>
+        <button class="mobile-bottom-nav-item" id="mobile-nav-search">
+            <i data-lucide="search"></i>
+            <span>Buscar</span>
+        </button>
+        <button class="mobile-bottom-nav-item" id="mobile-nav-menu">
+            <div class="mobile-nav-profile-avatar" id="mobile-nav-profile-avatar"></div>
+            <span>Mi Netflix</span>
+        </button>
+    </div>
+
+    <!-- BOTTOM SHEET PARA EL MENÚ DE OPCIONES DE USUARIO EN MÓVIL -->
+    <div class="bottom-sheet-overlay hidden" id="bottom-sheet-menu">
+        <div class="bottom-sheet-backdrop" id="bottom-sheet-backdrop"></div>
+        <div class="bottom-sheet-container">
+            <div class="bottom-sheet-header">
+                <div class="bottom-sheet-profile-info">
+                    <div class="bottom-sheet-avatar" id="bottom-sheet-profile-avatar"></div>
+                    <span class="bottom-sheet-profile-name" id="bottom-sheet-profile-name">Usuario</span>
+                </div>
+                <button class="bottom-sheet-close" id="bottom-sheet-close" title="Cerrar">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="bottom-sheet-body">
+                <button class="bottom-sheet-item" id="bottom-sheet-switch-profile">
+                    <i data-lucide="users"></i>
+                    <span>Cambiar de Perfil</span>
+                </button>
+                <button class="bottom-sheet-item" id="bottom-sheet-my-list">
+                    <i data-lucide="check-circle"></i>
+                    <span>Mi Lista</span>
+                </button>
+                <button class="bottom-sheet-item" id="bottom-sheet-add-video">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Añadir Película/Serie</span>
+                </button>
+                <button class="bottom-sheet-item logout" id="bottom-sheet-logout">
+                    <i data-lucide="log-out"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script principal de la aplicación -->
     <script src="app.js"></script>
 </body>

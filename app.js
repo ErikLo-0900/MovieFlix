@@ -555,6 +555,12 @@ function selectProfile(profileId) {
         setAvatarOnElement(sidebarProfileAvatar, activeProfile, "sidebar");
     }
 
+    // Configurar el avatar en la barra de navegación inferior móvil
+    const mobNavProfileAvatar = document.getElementById("mobile-nav-profile-avatar");
+    if (mobNavProfileAvatar) {
+        setAvatarOnElement(mobNavProfileAvatar, activeProfile, "nav");
+    }
+
     // Cambiar pantalla
     profileScreen.classList.remove("active");
     profileScreen.classList.add("hidden");
@@ -892,6 +898,15 @@ function getRandomHexColor() {
 // ==========================================================================
 
 function renderVideoRows(filterType = "all") {
+    // Asegurar que el banner y canales estén visibles si no se está buscando
+    if (searchInput.value.trim() === "") {
+        heroBanner.classList.remove("hidden");
+        const channelsSection = document.querySelector(".channels-section");
+        if (channelsSection) {
+            channelsSection.classList.remove("hidden");
+        }
+    }
+
     mainContent.innerHTML = "";
     let allVideos = getAllVideos();
 
@@ -1146,12 +1161,153 @@ function updateDetailsFavoriteBtn(videoId) {
 // 8. BUSCADOR INTERACTIVO
 // ==========================================================================
 
+function getSearchSuggestions(query, results) {
+    const suggestions = new Set();
+    const cleanQuery = query.trim().toLowerCase();
+
+    // 1. Agregar géneros/categorías de los resultados
+    results.forEach(video => {
+        const catName = GENDER_NAMES[video.category] || video.category;
+        if (catName && catName.toLowerCase() !== cleanQuery) {
+            suggestions.add(catName);
+        }
+        if (video.author && video.author.toLowerCase() !== cleanQuery) {
+            suggestions.add(video.author);
+        }
+    });
+
+    // 2. Agregar títulos de películas que coinciden (hasta 3)
+    results.slice(0, 3).forEach(video => {
+        if (video.title.toLowerCase() !== cleanQuery) {
+            suggestions.add(video.title);
+        }
+    });
+
+    // 3. Agregar tags de los videos que coinciden
+    results.forEach(video => {
+        if (video.tags) {
+            video.tags.split(",").map(t => t.trim()).forEach(tag => {
+                if (tag && tag.toLowerCase() !== cleanQuery && tag.length < 20) {
+                    const capitalizedTag = tag.charAt(0).toUpperCase() + tag.slice(1);
+                    suggestions.add(capitalizedTag);
+                }
+            });
+        }
+    });
+
+    let suggestionList = Array.from(suggestions);
+    suggestionList = suggestionList.filter(s => s.toLowerCase().trim() !== cleanQuery && s.length > 2);
+
+    // Si hay pocas sugerencias, rellenamos con títulos de catálogo generales al azar
+    if (suggestionList.length < 5) {
+        const allVideos = getAllVideos();
+        const shuffled = [...allVideos].sort(() => 0.5 - Math.random());
+        for (let v of shuffled) {
+            if (suggestionList.length >= 8) break;
+            if (v.title.toLowerCase() !== cleanQuery && !suggestionList.includes(v.title)) {
+                suggestionList.push(v.title);
+            }
+        }
+    }
+
+    return suggestionList.slice(0, 10);
+}
+
+function createSearchCard(video) {
+    const card = document.createElement("div");
+    card.className = "video-card";
+
+    // Poster
+    let posterHTML = "";
+    if (video.poster) {
+        posterHTML = `<img src="${video.poster}" class="card-poster" alt="${video.title}" loading="lazy">`;
+    } else {
+        posterHTML = `
+            <div class="card-gradient-bg" style="background: linear-gradient(135deg, ${getRandomHexColor()}, #1e293b)">
+                <span>${video.title}</span>
+            </div>
+        `;
+    }
+
+    const isFav = activeProfile.favorites.includes(video.id);
+
+    card.innerHTML = `
+        ${posterHTML}
+        <div class="card-overlay">
+            <div class="card-title">${video.title}</div>
+            <div class="card-meta">
+                <span class="match">${video.match || 90}% Coincidencia</span>
+                <span>${video.year}</span>
+                <span>${video.duration || ''}</span>
+            </div>
+            <div class="card-controls">
+                <button class="card-ctrl-btn play-card-btn" title="Reproducir Tráiler">
+                    <i data-lucide="play"></i>
+                </button>
+                <button class="card-ctrl-btn fav-card-btn ${isFav ? 'active-favorite' : ''}" title="${isFav ? 'Quitar de Mi Lista' : 'Añadir a Mi Lista'}">
+                    <i data-lucide="${isFav ? 'check' : 'plus'}"></i>
+                </button>
+                <button class="card-ctrl-btn info-card-btn" title="Más Información">
+                    <i data-lucide="chevron-down"></i>
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Asignar eventos
+    card.querySelector(".play-card-btn").onclick = (e) => {
+        e.stopPropagation();
+        playVideo(video);
+    };
+
+    card.querySelector(".fav-card-btn").onclick = (e) => {
+        e.stopPropagation();
+        toggleFavorite(video.id);
+        performSearch();
+    };
+
+    card.querySelector(".info-card-btn").onclick = (e) => {
+        e.stopPropagation();
+        openDetailsModal(video);
+    };
+
+    card.onclick = () => openDetailsModal(video);
+
+    return card;
+}
+
+// Función global en window para seleccionar una sugerencia
+window.selectSearchSuggestion = function(queryText) {
+    searchInput.value = queryText;
+    if (clearSearchBtn) {
+        clearSearchBtn.classList.remove("hidden");
+    }
+    const box = document.getElementById("search-box");
+    if (box && !box.classList.contains("active")) {
+        box.classList.add("active");
+        searchInput.focus();
+    }
+    performSearch();
+};
+
 function performSearch() {
     const query = searchInput.value.trim().toLowerCase();
     
     if (query === "") {
+        heroBanner.classList.remove("hidden");
+        const channelsSection = document.querySelector(".channels-section");
+        if (channelsSection) {
+            channelsSection.classList.remove("hidden");
+        }
         renderVideoRows();
         return;
+    }
+
+    // Ocultar banner principal y sección de canales durante la búsqueda
+    heroBanner.classList.add("hidden");
+    const channelsSection = document.querySelector(".channels-section");
+    if (channelsSection) {
+        channelsSection.classList.add("hidden");
     }
 
     const allVideos = getAllVideos();
@@ -1169,96 +1325,66 @@ function performSearch() {
 
     mainContent.innerHTML = "";
 
-    const searchRow = document.createElement("div");
-    searchRow.className = "video-row";
-    
-    const resultsTitle = `
-        <h2 class="row-title">
-            <i data-lucide="search"></i> Resultados de búsqueda para: "${searchInput.value}"
-        </h2>
-    `;
-    searchRow.innerHTML = resultsTitle;
+    // Contenedor principal de los resultados de búsqueda
+    const searchContainer = document.createElement("div");
+    searchContainer.className = "search-results-container";
 
-    if (results.length === 0) {
-        const noResults = document.createElement("div");
-        noResults.className = "row-empty-message";
-        noResults.innerHTML = `
-            <i data-lucide="frown" style="width: 40px; height: 40px; margin-bottom: 0.5rem; display: block; margin-left: auto; margin-right: auto;"></i>
-            No encontramos películas o tráilers que coincidan con tu búsqueda. Intenta con directores, actores o géneros.
-        `;
-        searchRow.appendChild(noResults);
-    } else {
-        const grid = document.createElement("div");
-        grid.className = "similar-grid";
-        grid.style.padding = "20px 0";
-
-        results.forEach(video => {
-            const card = document.createElement("div");
-            card.className = "video-card";
-            card.style.width = "100%";
-
-            let posterHTML = "";
-            if (video.poster) {
-                posterHTML = `<img src="${video.poster}" class="card-poster" alt="${video.title}">`;
-            } else {
-                posterHTML = `
-                    <div class="card-gradient-bg" style="background: linear-gradient(135deg, ${getRandomHexColor()}, #1e293b)">
-                        <span>${video.title}</span>
-                    </div>
-                `;
+    // 1. Barra de exploración/sugerencias
+    const suggestions = getSearchSuggestions(query, results);
+    if (suggestions.length > 0) {
+        const exploreBar = document.createElement("div");
+        exploreBar.className = "search-explore-bar";
+        
+        let linksHTML = `<span class="search-explore-label">Más contenido para explorar:</span>`;
+        suggestions.forEach((suggestion, index) => {
+            const escaped = suggestion.replace(/'/g, "\\'");
+            linksHTML += `<a class="search-explore-link" onclick="window.selectSearchSuggestion('${escaped}')">${suggestion}</a>`;
+            if (index < suggestions.length - 1) {
+                linksHTML += `<span class="search-explore-separator">|</span>`;
             }
-
-            const isFav = activeProfile.favorites.includes(video.id);
-
-            card.innerHTML = `
-                ${posterHTML}
-                <div class="card-overlay">
-                    <div class="card-title">${video.title}</div>
-                    <div class="card-meta">
-                        <span class="match">${video.match || 90}% Coincidencia</span>
-                        <span>${video.year}</span>
-                    </div>
-                    <div class="card-controls">
-                        <button class="card-ctrl-btn play-card-btn">
-                            <i data-lucide="play"></i>
-                        </button>
-                        <button class="card-ctrl-btn fav-card-btn ${isFav ? 'active-favorite' : ''}">
-                            <i data-lucide="${isFav ? 'check' : 'plus'}"></i>
-                        </button>
-                        <button class="card-ctrl-btn info-card-btn">
-                            <i data-lucide="chevron-down"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            card.querySelector(".play-card-btn").onclick = (e) => {
-                e.stopPropagation();
-                playVideo(video);
-            };
-
-            card.querySelector(".fav-card-btn").onclick = (e) => {
-                e.stopPropagation();
-                toggleFavorite(video.id);
-                performSearch();
-            };
-
-            card.querySelector(".info-card-btn").onclick = (e) => {
-                e.stopPropagation();
-                openDetailsModal(video);
-            };
-
-            card.onclick = () => openDetailsModal(video);
-
-            grid.appendChild(card);
         });
-
-        searchRow.appendChild(grid);
+        exploreBar.innerHTML = linksHTML;
+        searchContainer.appendChild(exploreBar);
     }
 
-    mainContent.appendChild(searchRow);
+    // 2. Grid de resultados de búsqueda o recomendaciones en caso de no haber coincidencias
+    if (results.length === 0) {
+        const emptyMessage = document.createElement("div");
+        emptyMessage.className = "row-empty-message";
+        emptyMessage.style.textAlign = "center";
+        emptyMessage.style.padding = "2rem 0";
+        emptyMessage.innerHTML = `
+            <i data-lucide="frown" style="width: 48px; height: 48px; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto; color: var(--text-muted);"></i>
+            No encontramos películas o series que coincidan con "${searchInput.value}".
+            <div style="font-size: 0.95rem; margin-top: 1rem; color: var(--text-muted);">Tal vez te interese ver algunas de nuestras recomendaciones:</div>
+        `;
+        searchContainer.appendChild(emptyMessage);
+
+        // Mostrar videos recomendados de relleno en grid
+        const recVideos = getRecommendations();
+        if (recVideos.length > 0) {
+            const grid = document.createElement("div");
+            grid.className = "search-results-grid";
+            recVideos.forEach(video => {
+                const card = createSearchCard(video);
+                grid.appendChild(card);
+            });
+            searchContainer.appendChild(grid);
+        }
+    } else {
+        const grid = document.createElement("div");
+        grid.className = "search-results-grid";
+        results.forEach(video => {
+            const card = createSearchCard(video);
+            grid.appendChild(card);
+        });
+        searchContainer.appendChild(grid);
+    }
+
+    mainContent.appendChild(searchContainer);
     lucide.createIcons();
 }
+
 
 // ==========================================================================
 // 9. MODALES: DETALLES, AGREGAR PELÍCULAS
@@ -3195,6 +3321,193 @@ function setupGlobalEvents() {
         }
         resetControlsTimeout();
     });
+
+    // ==========================================================================
+    // CONTROLADORES DE LA NAVEGACIÓN INFERIOR MÓVIL (ESTILO NETFLIX)
+    // ==========================================================================
+    const mobNavHome = document.getElementById("mobile-nav-home");
+    const mobNavSearch = document.getElementById("mobile-nav-search");
+    const mobNavMenu = document.getElementById("mobile-nav-menu");
+
+    const bottomSheetMenu = document.getElementById("bottom-sheet-menu");
+    const bottomSheetBackdrop = document.getElementById("bottom-sheet-backdrop");
+    const bottomSheetClose = document.getElementById("bottom-sheet-close");
+    const bottomSheetSwitchProfile = document.getElementById("bottom-sheet-switch-profile");
+    const bottomSheetMyList = document.getElementById("bottom-sheet-my-list");
+    const bottomSheetAddVideo = document.getElementById("bottom-sheet-add-video");
+    const bottomSheetLogout = document.getElementById("bottom-sheet-logout");
+
+    // Auxiliar para establecer el botón inferior activo
+    const setMobileBottomNavActive = (activeId) => {
+        document.querySelectorAll(".mobile-bottom-nav-item").forEach(item => {
+            item.classList.remove("active");
+        });
+        const activeItem = document.getElementById(activeId);
+        if (activeItem) {
+            activeItem.classList.add("active");
+        }
+    };
+
+    if (mobNavHome) {
+        mobNavHome.onclick = (e) => {
+            e.preventDefault();
+            setMobileBottomNavActive("mobile-nav-home");
+            
+            // Limpiar buscador
+            searchInput.value = "";
+            clearSearchBtn.classList.add("hidden");
+            document.getElementById("search-box").classList.remove("active");
+            
+            // Mostrar banner y canales
+            heroBanner.classList.remove("hidden");
+            const channelsSection = document.querySelector(".channels-section");
+            if (channelsSection) {
+                channelsSection.classList.remove("hidden");
+            }
+            
+            // Navegar a home
+            document.querySelectorAll(".nav-link, .mobile-menu-link").forEach(l => l.classList.remove("active"));
+            document.querySelectorAll('[data-target="home"]').forEach(l => l.classList.add("active"));
+            
+            renderVideoRows("all");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+    }
+
+    if (mobNavSearch) {
+        mobNavSearch.onclick = (e) => {
+            e.preventDefault();
+            setMobileBottomNavActive("mobile-nav-search");
+            
+            // Activar cuadro de búsqueda y enfocar
+            const box = document.getElementById("search-box");
+            if (box && !box.classList.contains("active")) {
+                box.classList.add("active");
+            }
+            searchInput.focus();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+    }
+
+    // Al escribir en el buscador o borrar, actualizar el botón activo de la barra inferior
+    searchInput.addEventListener("input", () => {
+        if (searchInput.value.trim() !== "") {
+            setMobileBottomNavActive("mobile-nav-search");
+        } else {
+            setMobileBottomNavActive("mobile-nav-home");
+        }
+    });
+
+    clearSearchBtn.addEventListener("click", () => {
+        setMobileBottomNavActive("mobile-nav-home");
+    });
+
+    if (mobNavMenu) {
+        mobNavMenu.onclick = (e) => {
+            e.preventDefault();
+            if (!activeProfile) return;
+            
+            // Actualizar avatar y nombre del bottom sheet
+            const sheetAvatar = document.getElementById("bottom-sheet-profile-avatar");
+            const sheetName = document.getElementById("bottom-sheet-profile-name");
+            if (sheetAvatar) {
+                setAvatarOnElement(sheetAvatar, activeProfile, "nav");
+            }
+            if (sheetName) {
+                sheetName.innerText = activeProfile.name;
+            }
+
+            setMobileBottomNavActive("mobile-nav-menu");
+            bottomSheetMenu.classList.remove("hidden");
+        };
+    }
+
+    const closeBottomSheet = () => {
+        if (bottomSheetMenu) {
+            bottomSheetMenu.classList.add("hidden");
+        }
+        // Restaurar estado activo de la barra inferior
+        if (searchInput.value.trim() !== "") {
+            setMobileBottomNavActive("mobile-nav-search");
+        } else {
+            setMobileBottomNavActive("mobile-nav-home");
+        }
+    };
+
+    if (bottomSheetBackdrop) bottomSheetBackdrop.onclick = closeBottomSheet;
+    if (bottomSheetClose) bottomSheetClose.onclick = closeBottomSheet;
+
+    if (bottomSheetSwitchProfile) {
+        bottomSheetSwitchProfile.onclick = (e) => {
+            e.preventDefault();
+            closeBottomSheet();
+            
+            // Ir a pantalla de perfiles (cambiar usuario)
+            mainDashboard.classList.add("hidden");
+            mainDashboard.classList.remove("active");
+            profileScreen.classList.remove("hidden");
+            profileScreen.classList.add("active");
+            renderProfilesScreen();
+        };
+    }
+
+    if (bottomSheetMyList) {
+        bottomSheetMyList.onclick = (e) => {
+            e.preventDefault();
+            closeBottomSheet();
+            
+            // Simular click en enlace "Mi Lista"
+            const myListLink = document.querySelector('.mobile-menu-link[data-target="my-list"]');
+            if (myListLink) {
+                myListLink.click();
+            } else {
+                // Navegar directo si no se encuentra
+                const allVideos = getAllVideos();
+                const favoriteVideos = allVideos.filter(v => activeProfile.favorites.includes(v.id));
+                mainContent.innerHTML = "";
+                if (favoriteVideos.length === 0) {
+                    const row = document.createElement("div");
+                    row.className = "video-row";
+                    row.innerHTML = `
+                        <h2 class="row-title"><i data-lucide="check-circle"></i> Mi Lista</h2>
+                        <div class="row-empty-message">
+                            No has agregado ningún contenido a tu lista todavía. Explora el catálogo y presiona el botón (+) para agregarlo.
+                        </div>
+                    `;
+                    mainContent.appendChild(row);
+                    lucide.createIcons();
+                } else {
+                    createVideoRow("Mi Lista", favoriteVideos, "check-circle");
+                }
+            }
+        };
+    }
+
+    if (bottomSheetAddVideo) {
+        bottomSheetAddVideo.onclick = (e) => {
+            e.preventDefault();
+            closeBottomSheet();
+            // Simular click en Añadir Película del menú móvil
+            if (mobileNavAddSidebar) {
+                mobileNavAddSidebar.click();
+            } else if (navAddVideo) {
+                navAddVideo.click();
+            }
+        };
+    }
+
+    if (bottomSheetLogout) {
+        bottomSheetLogout.onclick = (e) => {
+            e.preventDefault();
+            closeBottomSheet();
+            // Simular click en Cerrar Sesión
+            if (profileLogoutLink) {
+                profileLogoutLink.click();
+            } else if (dropdownLogoutApp) {
+                dropdownLogoutApp.click();
+            }
+        };
+    }
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
