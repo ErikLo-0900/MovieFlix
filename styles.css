@@ -3068,13 +3068,14 @@ input, select, textarea {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 56px;
+    height: calc(64px + env(safe-area-inset-bottom));
     background-color: #09090b; /* Color de fondo a juego con el tema */
     border-top: 1px solid var(--border);
     justify-content: space-around;
     align-items: center;
     z-index: 999;
-    padding-bottom: env(safe-area-inset-bottom); /* iPhone notch */
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* Margen extra en la parte inferior para alejar del borde de la pantalla */
+    box-sizing: border-box;
 }
 
 .mobile-bottom-nav-item {
@@ -3253,7 +3254,7 @@ input, select, textarea {
     }
     
     .main-content {
-        padding-bottom: 90px !important; /* Espacio para no tapar contenido por la barra */
+        padding-bottom: 100px !important; /* Espacio para no tapar contenido por la barra */
     }
 }
 
