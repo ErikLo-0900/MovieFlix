@@ -2044,6 +2044,33 @@ function getGoogleDriveEmbedUrl(url) {
     return null;
 }
 
+function getEmbeddableUrl(url) {
+    if (!url) return null;
+    
+    // 1. YouTube
+    const youtubeId = getYouTubeId(url);
+    if (youtubeId) {
+        return `https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1&rel=0`;
+    }
+    
+    // 2. Google Drive
+    const driveEmbedUrl = getGoogleDriveEmbedUrl(url);
+    if (driveEmbedUrl) {
+        return driveEmbedUrl;
+    }
+    
+    // 3. Servidores comunes de streaming de terceros (Cuevana, etc.)
+    const streamingHosts = ["streamwish", "streamtape", "mixdrop", "fembed", "upstream", "ok.ru", "voex", "dood", "filemoon", "waaw", "cuevana"];
+    const lowerUrl = url.toLowerCase();
+    const isStreamingHost = streamingHosts.some(host => lowerUrl.includes(host));
+    
+    if (isStreamingHost || lowerUrl.includes("/embed/") || lowerUrl.includes("/e/")) {
+        return url;
+    }
+    
+    return null;
+}
+
 function getDirectStreamUrl(url) {
     if (!url) return "";
     
@@ -2177,19 +2204,14 @@ function playVideo(video) {
         resetControlsTimeout();
         return;
     }
-    const youtubeId = getYouTubeId(video.url);
-    const driveEmbedUrl = getGoogleDriveEmbedUrl(video.url);
+    const embedUrl = getEmbeddableUrl(video.url);
 
-    if (youtubeId || driveEmbedUrl) {
-        // Modo YouTube o Google Drive Embed / Universal
-        const embedSrc = youtubeId 
-            ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1&rel=0` 
-            : driveEmbedUrl;
-            
+    if (embedUrl) {
+        // Modo YouTube, Google Drive o Servidores de Streaming Externos (Cuevana/etc.)
         playerContainer.classList.add("iframe-mode");
         iframeContainer.innerHTML = `
             <iframe 
-                src="${embedSrc}" 
+                src="${embedUrl}" 
                 frameborder="0" 
                 allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen 
