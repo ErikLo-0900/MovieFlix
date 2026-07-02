@@ -2354,10 +2354,11 @@ function playVideo(video) {
 
     if (embedUrl) {
         // Modo YouTube, Google Drive o Servidores de Streaming Externos (Cuevana/etc.)
-        // Determinar si debemos aplicar el sandbox (se desactiva para hosts que lo bloquean explícitamente como tiktokshopping o martinshop)
+        // Aplicar el sandbox únicamente para hosts seguros (YouTube y Google Drive)
+        // Se desactiva para todos los demás servidores externos de streaming ya que bloquean activamente los iframes con sandbox
         const lowerEmbedUrl = embedUrl.toLowerCase();
-        const disableSandbox = lowerEmbedUrl.includes("tiktokshopping") || lowerEmbedUrl.includes("martinshop");
-        const sandboxAttr = disableSandbox ? "" : `sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-popups-to-escape-sandbox"`;
+        const isSafeHost = lowerEmbedUrl.includes("youtube.com") || lowerEmbedUrl.includes("youtube-nocookie.com") || lowerEmbedUrl.includes("drive.google.com") || lowerEmbedUrl.includes("google.com/file");
+        const sandboxAttr = isSafeHost ? `sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-popups-to-escape-sandbox"` : "";
 
         playerContainer.classList.add("iframe-mode");
         iframeContainer.innerHTML = `

@@ -32,6 +32,9 @@ const getRequestOptions = (targetUrl) => {
     };
 };
 
+// Servidores globales en inglés a excluir
+const excludedHosts = ["vsembed", "vidlink", "videasy", "vidapi"];
+
 // Función auxiliar para descargar HTML de forma asíncrona (Promesa)
 function fetchHtml(targetUrl) {
     return new Promise((resolve, reject) => {
@@ -45,6 +48,22 @@ function fetchHtml(targetUrl) {
             res.on('end', () => resolve(data));
         }).on('error', err => reject(err));
     });
+}
+
+// Obtener nombre del servidor a partir de la URL
+function getServerName(urlStr) {
+    try {
+        const parsed = new URL(urlStr);
+        let host = parsed.hostname.replace('www.', '');
+        // Retornar primera parte con letra capital (ej. streamwish.to -> Streamwish)
+        const parts = host.split('.');
+        if (parts.length > 0) {
+            return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+        }
+        return host;
+    } catch (e) {
+        return "Servidor";
+    }
 }
 
 // Función para desencriptar el token
@@ -102,6 +121,7 @@ async function main() {
         console.log(`=========================================`);
         console.log(`Serie a procesar: ${seriesTitle}`);
         console.log(`URL inicial: ${cleanMainUrl}`);
+        console.log(`Excluyendo servidores en inglés: ${excludedHosts.join(', ')}`);
 
         // 1. Obtener las URL de las Temporadas
         console.log(`\nObteniendo lista de temporadas...`);
@@ -136,13 +156,12 @@ async function main() {
 
         // 2. Procesar cada Temporada
         for (let seasonUrl of uniqueSeasonUrls) {
-            // Extraer número de temporada
             const seasonNumMatch = seasonUrl.match(/temporada-(\d+)/);
             const seasonNum = seasonNumMatch ? parseInt(seasonNumMatch[1]) : 1;
             console.log(`\n-----------------------------------------`);
             console.log(`Procesando Temporada ${seasonNum} (${seasonUrl})...`);
             
-            await sleep(1000); // Esperar 1 segundo
+            await sleep(1000);
             const seasonHtml = await fetchHtml(seasonUrl);
             const episodeRegex = /href="([^"]+\/episodio-\d+x\d+)"/g;
             const episodeUrls = [];
@@ -173,43 +192,66 @@ async function main() {
                 console.log(`   -> Resolviendo Episodio ${seasonNum}x${epNum}...`);
                 
                 try {
-                    await sleep(800); // Pequeño retraso para evitar bloqueos
+                    await sleep(800);
                     const epHtml = await fetchHtml(epUrl);
                     
-                    // Buscar data-server="..."
-                    const serverMatch = epHtml.match(/data-server="([^"]+)"/);
-                    if (!serverMatch) {
+                    // Buscar todos los data-server="..." del episodio
+                    const serverRegex = /data-server="([^"]+)"/g;
+                    const serverUrls = [];
+                    let sMatch;
+                    while ((sMatch = serverRegex.exec(epHtml)) !== null) {
+                        serverUrls.push(sMatch[1]);
+                    }
+
+                    if (serverUrls.length === 0) {
                         console.log(`      [!] No se encontraron servidores para el episodio ${seasonNum}x${epNum}.`);
                         continue;
                     }
                     
-                    const optionUrl = serverMatch[1];
-                    let cleanVideoUrl = optionUrl;
+                    const resolvedServers = [];
 
-                    if (optionUrl.includes('?v=') || optionUrl.includes('&v=')) {
-                        // Base64 directo
-                        const vMatch = optionUrl.match(/[?&]v=([^&]+)/);
-                        if (vMatch && vMatch[1]) {
-                            cleanVideoUrl = Buffer.from(vMatch[1], 'base64').toString('utf-8');
+                    for (let optionUrl of serverUrls) {
+                        // Comprobar si el host está excluido
+                        const isExcluded = excludedHosts.some(host => optionUrl.toLowerCase().includes(host));
+                        if (isExcluded) continue;
+
+                        let cleanVideoUrl = optionUrl;
+
+                        if (optionUrl.includes('?v=') || optionUrl.includes('&v=')) {
+                            // Base64 directo
+                            const vMatch = optionUrl.match(/[?&]v=([^&]+)/);
+                            if (vMatch && vMatch[1]) {
+                                cleanVideoUrl = Buffer.from(vMatch[1], 'base64').toString('utf-8');
+                            }
+                        } else if (optionUrl.includes('?token=') || optionUrl.includes('&token=')) {
+                            // Cifrado XOR, descargar reproductor
+                            const tokenMatch = optionUrl.match(/[?&]token=([^&]+)/);
+                            if (tokenMatch && tokenMatch[1]) {
+                                const tokenValue = tokenMatch[1];
+                                await sleep(500);
+                                const playerHtml = await fetchHtml(optionUrl);
+                                const decrypted = decryptToken(tokenValue, playerHtml);
+                                if (decrypted) cleanVideoUrl = decrypted;
+                            }
                         }
-                    } else if (optionUrl.includes('?token=') || optionUrl.includes('&token=')) {
-                        // Cifrado XOR, descargar reproductor
-                        const tokenMatch = optionUrl.match(/[?&]token=([^&]+)/);
-                        if (tokenMatch && tokenMatch[1]) {
-                            const tokenValue = tokenMatch[1];
-                            await sleep(500);
-                            const playerHtml = await fetchHtml(optionUrl);
-                            const decrypted = decryptToken(tokenValue, playerHtml);
-                            if (decrypted) cleanVideoUrl = decrypted;
-                        }
+
+                        const serverName = getServerName(cleanVideoUrl);
+                        resolvedServers.push({
+                            name: serverName,
+                            url: cleanVideoUrl
+                        });
                     }
 
-                    console.log(`      [OK] URL: ${cleanVideoUrl}`);
-                    seasonData.episodes.push({
-                        episodeNumber: epNum,
-                        name: `Capítulo ${epNum}`,
-                        url: cleanVideoUrl
-                    });
+                    if (resolvedServers.length > 0) {
+                        console.log(`      [OK] Servidores encontrados en español: ${resolvedServers.map(s => s.name).join(', ')}`);
+                        seasonData.episodes.push({
+                            episodeNumber: epNum,
+                            name: `Capítulo ${epNum}`,
+                            servers: resolvedServers
+                        });
+                    } else {
+                        console.log(`      [!] No quedaron servidores válidos después de excluir los globales en inglés.`);
+                    }
                 } catch (epErr) {
                     console.log(`      [!] Error en episodio ${seasonNum}x${epNum}: ${epErr.message}`);
                 }
@@ -231,9 +273,6 @@ async function main() {
 
     } catch (err) {
         console.error(`\nError general en el proceso:`, err.message);
-        if (err.message.includes('403') || err.message.includes('503')) {
-            console.log("Detalle: Cloudflare bloqueó el acceso. Intenta en otro momento o verifica tu IP.");
-        }
     }
 }
 
