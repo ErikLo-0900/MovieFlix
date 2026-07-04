@@ -250,7 +250,8 @@ const GENDER_NAMES = {
     Terror: "Terror y Suspenso",
     Documental: "Documental",
     Animacion: "Animación y Anime",
-    Infantil: "Familiar e Infantil"
+    Infantil: "Familiar e Infantil",
+    CanalTV: "Canal de TV"
 };
 
 // ==========================================================================
@@ -357,7 +358,8 @@ function syncWithServer() {
         return Promise.resolve();
     }
     
-    return fetch('movies_db.json')
+    const timestamp = Date.now();
+    return fetch(`movies_db.json?t=${timestamp}`)
         .then(responseMovies => {
             if (responseMovies.status === 200) {
                 return responseMovies.json().then(serverMovies => {
@@ -373,7 +375,7 @@ function syncWithServer() {
             }
         })
         .then(() => {
-            return fetch('profiles_db.json');
+            return fetch(`profiles_db.json?t=${timestamp}`);
         })
         .then(responseProfiles => {
             if (responseProfiles.status === 200) {
@@ -390,7 +392,7 @@ function syncWithServer() {
             }
         })
         .then(() => {
-            if (currentProfile) {
+            if (activeProfile) {
                 renderVideoRows();
                 setupHeroBanner();
             } else {
@@ -921,6 +923,12 @@ function renderVideoRows(filterType = "all") {
         allVideos = allVideos.filter(v => v.type === "movie" || !v.type);
     }
 
+    if (currentPlatformFilter === "tv") {
+        createVideoRow("Canales en Vivo (Televisión)", allVideos, "tv");
+        lucide.createIcons();
+        return;
+    }
+
     if (allVideos.length === 0) {
         const emptyRow = document.createElement("div");
         emptyRow.className = "video-row";
@@ -992,7 +1000,8 @@ function renderVideoRows(filterType = "all") {
         { name: "Terror y Suspenso", key: "Terror", icon: "ghost" },
         { name: "Documental", key: "Documental", icon: "compass" },
         { name: "Animación y Anime", key: "Animacion", icon: "clapperboard" },
-        { name: "Familiar e Infantil", key: "Infantil", icon: "baby" }
+        { name: "Familiar e Infantil", key: "Infantil", icon: "baby" },
+        { name: "Canales de TV en Vivo", key: "CanalTV", icon: "tv" }
     ];
 
     categories.forEach(cat => {
@@ -3081,6 +3090,22 @@ function setupGlobalEvents() {
                 currentPlatformFilter = "tv";
                 updateChannelUI("tv");
                 renderVideoRows("all");
+            }
+
+            // Direccionamiento (scroll suave) abajo del banner principal según la opción elegida
+            const yOffset = -75; // Offset por la barra de navegación fija
+            let targetEl = null;
+            if (target === "home") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else if (target === "tv") {
+                targetEl = document.querySelector(".channels-section");
+            } else {
+                targetEl = document.getElementById("main-content");
+            }
+
+            if (targetEl) {
+                const y = targetEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: "smooth" });
             }
         });
     });
