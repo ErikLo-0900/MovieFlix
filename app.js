@@ -186,6 +186,26 @@ const addVideoBackdrop = document.getElementById("add-video-backdrop");
 const addVideoForm = document.getElementById("add-video-form");
 const addVideoCancel = document.getElementById("add-video-cancel");
 
+// Modal Ruleta Recomendación
+const navRandomVideo = document.getElementById("nav-random-video");
+const mobileNavRandom = document.getElementById("mobile-nav-random");
+const bottomSheetRandom = document.getElementById("bottom-sheet-random");
+const rouletteModal = document.getElementById("roulette-modal");
+const rouletteCloseBtn = document.getElementById("roulette-close-btn");
+const rouletteBackdrop = document.getElementById("roulette-backdrop");
+const rouletteSpinBtn = document.getElementById("roulette-spin-btn");
+const rouletteTrack = document.getElementById("roulette-track");
+const rouletteViewport = document.getElementById("roulette-viewport");
+const rouletteResultContainer = document.getElementById("roulette-result-container");
+const resultPoster = document.getElementById("result-poster");
+const resultTitle = document.getElementById("result-title");
+const resultYear = document.getElementById("result-year");
+const resultCategory = document.getElementById("result-category");
+const resultDuration = document.getElementById("result-duration");
+const resultDescription = document.getElementById("result-description");
+const resultPlayBtn = document.getElementById("result-play-btn");
+const resultInfoBtn = document.getElementById("result-info-btn");
+
 // Selectores para Series (Temporadas y Capítulos)
 const videoTypeSelect = document.getElementById("video-type");
 const formMovieVideoSection = document.getElementById("form-movie-video-section");
@@ -3563,6 +3583,184 @@ function setupGlobalEvents() {
             }
         };
     }
+
+    // Eventos de la Ruleta (Sorpréndeme)
+    if (navRandomVideo) {
+        navRandomVideo.onclick = (e) => {
+            e.preventDefault();
+            openRouletteModal();
+        };
+    }
+    if (mobileNavRandom) {
+        mobileNavRandom.onclick = (e) => {
+            e.preventDefault();
+            openRouletteModal();
+        };
+    }
+    if (bottomSheetRandom) {
+        bottomSheetRandom.onclick = (e) => {
+            e.preventDefault();
+            closeBottomSheet();
+            openRouletteModal();
+        };
+    }
+    if (rouletteCloseBtn) rouletteCloseBtn.onclick = closeRouletteModal;
+    if (rouletteBackdrop) rouletteBackdrop.onclick = closeRouletteModal;
+    if (rouletteSpinBtn) rouletteSpinBtn.onclick = spinRoulette;
+}
+
+// ==========================================================================
+// LÓGICA DE LA RULETA DE RECOMENDACIÓN (SORPRÉNDEME)
+// ==========================================================================
+let isRouletteSpinning = false;
+let rouletteTrackItems = [];
+
+function openRouletteModal() {
+    if (isRouletteSpinning) return;
+    
+    // Ocultar resultados previos
+    rouletteResultContainer.classList.add("hidden");
+    rouletteTrack.style.transition = "none";
+    rouletteTrack.style.transform = "translateX(0px)";
+    rouletteTrack.innerHTML = "";
+    
+    // Obtener contenidos recomendables (filtrar canales de TV)
+    const allVideos = getAllVideos().filter(v => v.platform !== "tv" && v.category !== "CanalTV");
+    
+    if (allVideos.length === 0) {
+        alert("Aún no hay películas o series agregadas al catálogo para recomendar.");
+        return;
+    }
+    
+    // Habilitar botón de giro
+    rouletteSpinBtn.disabled = false;
+    
+    // Generar pista de 40 tarjetas aleatorias
+    rouletteTrackItems = [];
+    for (let i = 0; i < 40; i++) {
+        const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)];
+        rouletteTrackItems.push(randomVideo);
+        
+        // Crear tarjeta HTML
+        const card = document.createElement("div");
+        card.className = "roulette-card";
+        
+        if (randomVideo.poster) {
+            card.innerHTML = `<img src="${randomVideo.poster}" class="roulette-card-img" alt="${randomVideo.title}" draggable="false">`;
+        } else {
+            card.innerHTML = `<div class="roulette-card-placeholder"><span>${randomVideo.title}</span></div>`;
+        }
+        
+        rouletteTrack.appendChild(card);
+    }
+    
+    rouletteModal.classList.remove("hidden");
+    lucide.createIcons();
+}
+
+function closeRouletteModal() {
+    if (isRouletteSpinning) return;
+    rouletteModal.classList.add("hidden");
+}
+
+function spinRoulette() {
+    if (isRouletteSpinning || rouletteTrackItems.length === 0) return;
+    
+    isRouletteSpinning = true;
+    rouletteSpinBtn.disabled = true;
+    rouletteResultContainer.classList.add("hidden");
+    
+    // Limpiar clases de candidatos previos
+    const cards = rouletteTrack.querySelectorAll(".roulette-card");
+    cards.forEach(c => c.classList.remove("selected-candidate"));
+    
+    // Reiniciar posición
+    rouletteTrack.style.transition = "none";
+    rouletteTrack.style.transform = "translateX(0px)";
+    
+    // Forzar reflow del navegador
+    rouletteTrack.offsetHeight;
+    
+    const viewportWidth = rouletteViewport.offsetWidth;
+    
+    // Elegir índice ganador (ej. entre 28 y 34)
+    const winningIndex = Math.floor(Math.random() * 7) + 28;
+    const winningVideo = rouletteTrackItems[winningIndex];
+    
+    // El ancho de cada tarjeta es 110px de ancho + 12px de margen total (6px izquierda y 6px derecha) = 122px.
+    // El centro del viewport es viewportWidth / 2.
+    // La posición de la tarjeta ganadora es winningIndex * 122px, y el centro de esa tarjeta está a 61px adicionales.
+    const cardStep = 122;
+    const cardCenterOffset = 61;
+    const targetX = (viewportWidth / 2) - ((winningIndex * cardStep) + cardCenterOffset);
+    
+    // Aplicar animación con easing-out usando cubic-bezier
+    rouletteTrack.style.transition = "transform 4s cubic-bezier(0.15, 0.85, 0.35, 1)";
+    rouletteTrack.style.transform = `translateX(${targetX}px)`;
+    
+    // Simular un temporizador para cuando se detenga
+    setTimeout(() => {
+        // Marcar la tarjeta seleccionada
+        const winningCard = cards[winningIndex];
+        if (winningCard) {
+            winningCard.classList.add("selected-candidate");
+        }
+        
+        // Rellenar los detalles del resultado
+        const resultPosterImg = document.getElementById("result-poster");
+        if (resultPosterImg) {
+            if (winningVideo.poster) {
+                resultPosterImg.src = winningVideo.poster;
+                resultPosterImg.classList.remove("hidden");
+            } else {
+                resultPosterImg.src = "";
+                resultPosterImg.classList.add("hidden");
+            }
+        }
+        
+        const resTitle = document.getElementById("result-title");
+        if (resTitle) resTitle.innerText = winningVideo.title;
+        
+        const resYear = document.getElementById("result-year");
+        if (resYear) resYear.innerText = winningVideo.year;
+        
+        const resCategory = document.getElementById("result-category");
+        if (resCategory) {
+            resCategory.innerText = GENDER_NAMES[winningVideo.category] || winningVideo.category;
+        }
+        
+        const resDuration = document.getElementById("result-duration");
+        if (resDuration) resDuration.innerText = winningVideo.duration;
+        
+        const resDesc = document.getElementById("result-description");
+        if (resDesc) resDesc.innerText = winningVideo.description || "Sin sinopsis disponible.";
+        
+        // Configurar botones de acción
+        const resPlayBtn = document.getElementById("result-play-btn");
+        if (resPlayBtn) {
+            resPlayBtn.onclick = () => {
+                closeRouletteModal();
+                playVideo(winningVideo);
+            };
+        }
+        
+        const resInfoBtn = document.getElementById("result-info-btn");
+        if (resInfoBtn) {
+            resInfoBtn.onclick = () => {
+                closeRouletteModal();
+                openDetailsModal(winningVideo);
+            };
+        }
+        
+        // Mostrar contenedor del resultado
+        rouletteResultContainer.classList.remove("hidden");
+        
+        // Reactivar controles
+        isRouletteSpinning = false;
+        rouletteSpinBtn.disabled = false;
+        
+        lucide.createIcons();
+    }, 4100); // Dar un margen para que se note la desaceleración final
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
