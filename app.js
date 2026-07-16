@@ -250,6 +250,7 @@ const GENDER_NAMES = {
     Terror: "Terror y Suspenso",
     Documental: "Documental",
     Animacion: "Animación y Anime",
+    Anime: "Anime",
     Infantil: "Familiar e Infantil",
     CanalTV: "Canal de TV"
 };
@@ -921,6 +922,8 @@ function renderVideoRows(filterType = "all") {
         allVideos = allVideos.filter(v => v.type === "series");
     } else if (filterType === "movie") {
         allVideos = allVideos.filter(v => v.type === "movie" || !v.type);
+    } else if (filterType === "anime") {
+        allVideos = allVideos.filter(v => v.category === "Anime");
     }
 
     if (currentPlatformFilter === "tv") {
@@ -940,6 +943,7 @@ function renderVideoRows(filterType = "all") {
         } else {
             if (filterType === "series") message = "Aún no has agregado ninguna serie al catálogo. ¡Haz clic en 'Añadir Contenido' para agregar tu primera serie!";
             if (filterType === "movie") message = "Aún no has agregado ninguna película al catálogo. ¡Haz clic en 'Añadir Contenido' para agregar tu primera película!";
+            if (filterType === "anime") message = "Aún no has agregado ningún anime al catálogo. ¡Haz clic en 'Añadir Contenido' para agregar tu primer anime!";
         }
         emptyRow.innerHTML = `
             <h2 class="row-title"><i data-lucide="info"></i> Canal Vacío</h2>
@@ -978,6 +982,7 @@ function renderVideoRows(filterType = "all") {
     const recommended = getRecommendations().filter(v => {
         if (filterType === "series") return v.type === "series";
         if (filterType === "movie") return v.type === "movie" || !v.type;
+        if (filterType === "anime") return v.category === "Anime";
         return true;
     });
     if (recommended.length > 0) {
@@ -990,6 +995,21 @@ function renderVideoRows(filterType = "all") {
         createVideoRow("Mi Lista", favoriteVideos, "check-circle");
     }
 
+    if (filterType === "anime") {
+        const animeSeries = allVideos.filter(v => v.type === "series");
+        const animeMovies = allVideos.filter(v => v.type === "movie" || !v.type);
+
+        if (animeSeries.length > 0) {
+            createVideoRow("Series de Anime", animeSeries, "tv");
+        }
+        if (animeMovies.length > 0) {
+            createVideoRow("Películas de Anime", animeMovies, "film");
+        }
+        
+        lucide.createIcons();
+        return;
+    }
+
     // 3. Filas por categorías de Cine
     const categories = [
         { name: "Acción y Aventura", key: "Accion", icon: "flame" },
@@ -1000,6 +1020,7 @@ function renderVideoRows(filterType = "all") {
         { name: "Terror y Suspenso", key: "Terror", icon: "ghost" },
         { name: "Documental", key: "Documental", icon: "compass" },
         { name: "Animación y Anime", key: "Animacion", icon: "clapperboard" },
+        { name: "Anime", key: "Anime", icon: "sparkles" },
         { name: "Familiar e Infantil", key: "Infantil", icon: "baby" },
         { name: "Canales de TV en Vivo", key: "CanalTV", icon: "tv" }
     ];
@@ -3084,6 +3105,8 @@ function setupGlobalEvents() {
                 renderVideoRows("series");
             } else if (target === "movies") {
                 renderVideoRows("movie");
+            } else if (target === "anime") {
+                renderVideoRows("anime");
             } else if (target === "home") {
                 renderVideoRows("all");
             } else if (target === "tv") {
