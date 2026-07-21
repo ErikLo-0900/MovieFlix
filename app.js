@@ -604,10 +604,11 @@ function selectProfile(profileId) {
 function startProfileSlideshow() {
     if (profileSlideshowInterval) return; // Ya está corriendo
 
-    const videos = getAllVideos();
+    // Filtrar películas/series/animes reales, excluyendo canales de TV
+    const videos = getAllVideos().filter(v => v.platform !== "tv" && v.category !== "CanalTV");
     profileSlideshowPosters = videos
         .map(v => v.poster || v.img) // Obtener poster, o img de fallback
-        .filter(url => url && url.startsWith('http')); // Filtrar URLs válidas
+        .filter(url => url && url.trim() !== ""); // Filtrar URLs y base64 válidas
 
     if (profileSlideshowPosters.length === 0) {
         profileSlideshowPosters = [
