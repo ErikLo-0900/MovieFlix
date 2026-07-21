@@ -164,6 +164,7 @@ const detailsBackToInfoBtn = document.getElementById("details-back-to-info-btn")
 const episodesScrollDownBtn = document.getElementById("episodes-scroll-down-btn");
 const episodesScrollUpBtn = document.getElementById("episodes-scroll-up-btn");
 const detailsFavoriteBtn = document.getElementById("details-favorite-btn");
+const detailsWatchedBtn = document.getElementById("details-watched-btn");
 const detailsDeleteBtn = document.getElementById("details-delete-btn");
 const detailsEditBtn = document.getElementById("details-edit-btn");
 const detailsHero = document.getElementById("details-hero");
@@ -449,12 +450,13 @@ function loadFromLocalStorage() {
         profiles.forEach(p => {
             if (!p.favorites) p.favorites = [];
             if (!p.history) p.history = [];
+            if (!p.watched) p.watched = [];
         });
     } else {
         // Perfiles iniciales por defecto
         profiles = [
-            { id: "p1", name: "Cinefilo", color: "purple", favorites: [], history: [] },
-            { id: "p2", name: "Invitado", color: "blue", favorites: [], history: [] }
+            { id: "p1", name: "Cinefilo", color: "purple", favorites: [], history: [], watched: [] },
+            { id: "p2", name: "Invitado", color: "blue", favorites: [], history: [], watched: [] }
         ];
         saveProfiles();
     }
@@ -1097,6 +1099,16 @@ function createVideoRow(title, videosList, iconName) {
         }
 
         const isFav = activeProfile.favorites.includes(video.id);
+        const isWatchedVideo = isWatched(video.id);
+
+        let watchedBadgeHTML = "";
+        if (isWatchedVideo) {
+            watchedBadgeHTML = `
+                <div class="card-watched-badge" title="Visto">
+                    <i data-lucide="eye"></i>
+                </div>
+            `;
+        }
 
         let progressBarHTML = "";
         if (video.progress !== undefined && video.progress > 0) {
@@ -1111,6 +1123,7 @@ function createVideoRow(title, videosList, iconName) {
         card.innerHTML = `
             ${posterHTML}
             ${progressBarHTML}
+            ${watchedBadgeHTML}
             <div class="card-overlay">
                 <div class="card-title">${video.title}</div>
                 <div class="card-meta">
@@ -1204,6 +1217,50 @@ function updateDetailsFavoriteBtn(videoId) {
         detailsFavoriteBtn.title = "Añadir a Mi Lista";
         detailsFavoriteBtn.style.backgroundColor = "rgba(0,0,0,0.5)";
         detailsFavoriteBtn.style.borderColor = "rgba(255,255,255,0.5)";
+    }
+    lucide.createIcons();
+}
+
+function isWatched(videoId) {
+    if (!activeProfile) return false;
+    activeProfile.watched = activeProfile.watched || [];
+    return activeProfile.watched.includes(videoId);
+}
+
+function toggleWatched(videoId) {
+    if (!activeProfile) return;
+    activeProfile.watched = activeProfile.watched || [];
+    
+    const watchIndex = activeProfile.watched.indexOf(videoId);
+    if (watchIndex !== -1) {
+        // Quitar
+        activeProfile.watched.splice(watchIndex, 1);
+    } else {
+        // Añadir
+        activeProfile.watched.push(videoId);
+    }
+    
+    saveProfiles();
+    renderVideoRows();
+    
+    // Si el modal de detalles está abierto para este video, refrescar su botón
+    if (!videoDetailsModal.classList.contains("hidden") && currentActiveVideo && currentActiveVideo.id === videoId) {
+        updateDetailsWatchedBtn(videoId);
+    }
+}
+
+function updateDetailsWatchedBtn(videoId) {
+    const hasWatched = isWatched(videoId);
+    if (hasWatched) {
+        detailsWatchedBtn.innerHTML = `<i data-lucide="eye"></i>`;
+        detailsWatchedBtn.title = "Visto (Marcar como no visto)";
+        detailsWatchedBtn.style.backgroundColor = "#10b981"; // Verde
+        detailsWatchedBtn.style.borderColor = "#10b981";
+    } else {
+        detailsWatchedBtn.innerHTML = `<i data-lucide="eye-off"></i>`;
+        detailsWatchedBtn.title = "No Visto (Marcar como visto)";
+        detailsWatchedBtn.style.backgroundColor = "rgba(0,0,0,0.5)";
+        detailsWatchedBtn.style.borderColor = "rgba(255,255,255,0.5)";
     }
     lucide.createIcons();
 }
@@ -1463,8 +1520,9 @@ function openDetailsModal(video) {
     detailsTags.innerText = video.tags || "Ninguna";
     detailsMatch.innerText = `${video.match || 90}% de coincidencia`;
 
-    // Configurar botón favorito
+    // Configurar botón favorito y visto
     updateDetailsFavoriteBtn(video.id);
+    updateDetailsWatchedBtn(video.id);
 
     // Botones de acción del modal
     detailsPlayBtn.onclick = () => {
@@ -1492,6 +1550,10 @@ function openDetailsModal(video) {
 
     detailsFavoriteBtn.onclick = () => {
         toggleFavorite(video.id);
+    };
+
+    detailsWatchedBtn.onclick = () => {
+        toggleWatched(video.id);
     };
 
 function checkMasterPassword(promptMessage) {
@@ -1903,6 +1965,7 @@ function renderEpisodesList(video, seasonIndex) {
         const row = document.createElement("div");
         row.className = "episode-row";
         row.tabIndex = 0; // Hacer enfocable por teclado/control remoto
+        const isEpWatched = isWatched(episode.id);
         row.innerHTML = `
             <span class="episode-number">${index + 1}</span>
             <div class="episode-play-icon" title="Reproducir capítulo">
@@ -1912,8 +1975,20 @@ function renderEpisodesList(video, seasonIndex) {
                 <span class="episode-title">${episode.name}</span>
                 <span class="episode-duration">${episode.duration || (episode.isLocalFile ? 'Archivo Local' : 'Enlace Web')}</span>
             </div>
+            <button class="episode-watched-btn ${isEpWatched ? 'watched' : ''}" title="${isEpWatched ? 'Marcar como no visto' : 'Marcar como visto'}">
+                <i data-lucide="${isEpWatched ? 'eye' : 'eye-off'}"></i>
+            </button>
         `;
         
+        const watchBtn = row.querySelector(".episode-watched-btn");
+        if (watchBtn) {
+            watchBtn.onclick = (e) => {
+                e.stopPropagation(); // Evitar reproducir al hacer click
+                toggleWatched(episode.id);
+                renderEpisodesList(video, seasonIndex);
+            };
+        }
+
         row.onclick = () => {
             closeDetailsModal();
             
@@ -2558,6 +2633,15 @@ function updatePlaybackHistory() {
     historyItem.duration = videoElement.duration || 0;
     historyItem.progress = historyItem.duration > 0 ? (historyItem.currentTime / historyItem.duration) : 0;
     historyItem.timestamp = Date.now();
+    
+    // Auto-marcar como visto si el progreso supera el 90%
+    if (historyItem.progress >= 0.90) {
+        activeProfile.watched = activeProfile.watched || [];
+        if (!activeProfile.watched.includes(currentActiveVideo.id)) {
+            activeProfile.watched.push(currentActiveVideo.id);
+            renderVideoRows();
+        }
+    }
     
     // Guardar en almacenamiento local
     localStorage.setItem("movieflix_profiles", JSON.stringify(profiles));

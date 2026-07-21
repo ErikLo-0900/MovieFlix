@@ -3557,6 +3557,67 @@ input, select, textarea {
     }
 }
 
+/* ==================== ESTILOS PARA INDICADOR DE VISTO (WATCHED) ==================== */
+.card-watched-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    background: rgba(16, 185, 129, 0.9); /* Verde translúcido */
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    transition: var(--transition-fast);
+}
+
+.card-watched-badge i {
+    width: 14px;
+    height: 14px;
+}
+
+.episode-watched-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.episode-watched-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: scale(1.1);
+}
+
+.episode-watched-btn.watched {
+    background-color: rgba(16, 185, 129, 0.15); /* Verde suave */
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.episode-watched-btn.watched:hover {
+    background-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.episode-watched-btn i {
+    width: 14px;
+    height: 14px;
+}
+
 
 
 
