@@ -2070,7 +2070,7 @@ async function handleCuevanaAutofill() {
         if (isSeries) {
             // Es una serie: poblar Temporadas y Episodios
             if (data.seasons && data.seasons.length > 0) {
-                formSeasons = data.seasons.map(season => {
+                const newSeasons = data.seasons.map(season => {
                     return {
                         name: `Temporada ${season.seasonNumber}`,
                         episodes: (season.episodes || []).map(ep => {
@@ -2087,6 +2087,24 @@ async function handleCuevanaAutofill() {
                         })
                     };
                 });
+
+                // Mezclar las nuevas temporadas con las existentes (evita borrar temporadas ya cargadas)
+                newSeasons.forEach(newSeason => {
+                    const existingIndex = formSeasons.findIndex(s => s.name.toLowerCase() === newSeason.name.toLowerCase());
+                    if (existingIndex !== -1) {
+                        formSeasons[existingIndex] = newSeason;
+                    } else {
+                        formSeasons.push(newSeason);
+                    }
+                });
+
+                // Ordenar temporadas numéricamente (Temporada 1, Temporada 2, etc.)
+                formSeasons.sort((a, b) => {
+                    const numA = parseInt(a.name.match(/\d+/) || 0);
+                    const numB = parseInt(b.name.match(/\d+/) || 0);
+                    return numA - numB;
+                });
+
                 renderFormSeasons();
             } else {
                 alert("No se pudieron extraer temporadas de esta serie.");
