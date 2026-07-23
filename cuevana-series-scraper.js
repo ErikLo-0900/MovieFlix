@@ -133,7 +133,7 @@ async function main() {
             seasonUrls.push(match[1]);
         }
 
-        const uniqueSeasonUrls = Array.from(new Set(seasonUrls)).sort((a, b) => {
+        let uniqueSeasonUrls = Array.from(new Set(seasonUrls)).sort((a, b) => {
             const numA = parseInt(a.match(/temporada-(\d+)/)[1]);
             const numB = parseInt(b.match(/temporada-(\d+)/)[1]);
             return numA - numB;
@@ -145,6 +145,21 @@ async function main() {
             uniqueSeasonUrls.push(cleanMainUrl);
         } else {
             console.log(`Se encontraron ${uniqueSeasonUrls.length} temporadas.`);
+            
+            // Si el usuario especificó una temporada concreta en la URL, extraer solo esa.
+            // Si ingresó el link genérico, extraer solo la Temporada 1 para evitar timeout de HTTP.
+            const specificSeasonMatch = cleanMainUrl.match(/temporada-(\d+)/);
+            if (specificSeasonMatch) {
+                const targetSeasonUrl = uniqueSeasonUrls.find(url => url.includes(`temporada-${specificSeasonMatch[1]}`));
+                if (targetSeasonUrl) {
+                    console.log(`[OK] Extrayendo únicamente la temporada especificada: Temporada ${specificSeasonMatch[1]}`);
+                    uniqueSeasonUrls = [targetSeasonUrl];
+                }
+            } else if (uniqueSeasonUrls.length > 1) {
+                console.log(`[!] Se detectaron ${uniqueSeasonUrls.length} temporadas. Para evitar bloqueos de IP y tiempos de espera excesivos, se extraerá únicamente la Temporada 1.`);
+                console.log(`[!] Para extraer otras temporadas, puedes hacerlo ingresando la URL de esa temporada específica (ej. https://cuevana3i.you/serie/rick-y-morty/temporada-2).`);
+                uniqueSeasonUrls = [uniqueSeasonUrls[0]];
+            }
         }
 
         const resultDatabase = {
