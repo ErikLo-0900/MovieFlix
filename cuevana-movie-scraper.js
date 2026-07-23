@@ -12,9 +12,11 @@ const cleanMainUrl = mainUrl.trim();
 const domainMatch = cleanMainUrl.match(/https?:\/\/[a-z0-9.-]+/i);
 const baseUrl = domainMatch ? domainMatch[0] : 'https://cuevana3i.you';
 
-// Extraer el slug de la película
-const urlParts = cleanMainUrl.split('/');
-const movieSlug = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2];
+// Extraer el slug de la película de forma limpia
+const urlWithoutQuery = cleanMainUrl.split('?')[0].split('#')[0];
+const cleanPath = urlWithoutQuery.replace(/\/$/, '');
+const pathParts = cleanPath.split('/');
+const movieSlug = pathParts[pathParts.length - 1];
 let movieTitle = movieSlug.charAt(0).toUpperCase() + movieSlug.slice(1).replace(/-/g, ' ');
 
 const headers = {

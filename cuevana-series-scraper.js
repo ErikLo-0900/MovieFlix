@@ -12,9 +12,11 @@ const cleanMainUrl = mainUrl.trim();
 const domainMatch = cleanMainUrl.match(/https?:\/\/[a-z0-9.-]+/i);
 const baseUrl = domainMatch ? domainMatch[0] : 'https://cuevana.you';
 
-// Extraer el nombre de la serie desde la URL
-const urlParts = cleanMainUrl.split('/');
-const seriesSlug = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2];
+// Extraer el nombre de la serie desde la URL de forma limpia
+const urlWithoutQuery = cleanMainUrl.split('?')[0].split('#')[0];
+const cleanPath = urlWithoutQuery.replace(/\/$/, '');
+const pathParts = cleanPath.split('/');
+const seriesSlug = pathParts[pathParts.length - 1];
 const seriesTitle = seriesSlug.charAt(0).toUpperCase() + seriesSlug.slice(1).replace(/-/g, ' ');
 
 const headers = {

@@ -111,15 +111,11 @@ try {
                     continue
                 }
 
-                # Extraer el slug para ubicar el archivo de salida
-                $urlParts = $cuevanaUrl.Split('/')
+                # Extraer el slug de forma limpia para ubicar el archivo de salida
+                $cleanUrl = $cuevanaUrl.Split('?')[0].Split('#')[0]
+                $cleanUrl = $cleanUrl.TrimEnd('/')
+                $urlParts = $cleanUrl.Split('/')
                 $slug = $urlParts[$urlParts.Length - 1]
-                if (-not $slug) {
-                    $slug = $urlParts[$urlParts.Length - 2]
-                }
-                
-                # Quitar parametros de consulta si los hay
-                $slug = $slug.Split('?')[0]
 
                 $scriptName = "cuevana-movie-scraper.js"
                 if ($cuevanaUrl -like "*\/serie\/*" -or $cuevanaUrl -like "*\/temporada\/*" -or $cuevanaUrl -like "*\/episodio\/*") {
@@ -128,8 +124,8 @@ try {
 
                 Write-Host "Ejecutando rascador: node $scriptName '$cuevanaUrl'" -ForegroundColor Cyan
                 
-                # Ejecutar el rascador de node y esperar a que termine
-                $process = Start-Process node -ArgumentList "$scriptName", "'$cuevanaUrl'" -NoNewWindow -PassThru -Wait
+                # Ejecutar el rascador de node asegurando el directorio de trabajo y esperar a que termine
+                $process = Start-Process node -ArgumentList "$scriptName", "'$cuevanaUrl'" -WorkingDirectory (Get-Location) -NoNewWindow -PassThru -Wait
                 
                 $outputFile = Join-Path (Get-Location) "$($slug)_links.json"
                 
