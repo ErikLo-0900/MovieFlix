@@ -8,7 +8,7 @@ if (!mainUrl) {
     process.exit(1);
 }
 
-const cleanMainUrl = mainUrl.trim();
+const cleanMainUrl = mainUrl.replace(/^['"]|['"]$/g, '').trim();
 const domainMatch = cleanMainUrl.match(/https?:\/\/[a-z0-9.-]+/i);
 const baseUrl = domainMatch ? domainMatch[0] : 'https://cuevana.you';
 

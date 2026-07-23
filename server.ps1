@@ -125,9 +125,9 @@ try {
                 Write-Host "Ejecutando rascador: node $scriptName '$cuevanaUrl'" -ForegroundColor Cyan
                 
                 # Ejecutar el rascador de node asegurando el directorio de trabajo y esperar a que termine
-                $process = Start-Process node -ArgumentList "$scriptName", "'$cuevanaUrl'" -WorkingDirectory (Get-Location) -NoNewWindow -PassThru -Wait
+                $process = Start-Process node -ArgumentList "$scriptName", "$cuevanaUrl" -WorkingDirectory $PSScriptRoot -NoNewWindow -PassThru -Wait
                 
-                $outputFile = Join-Path (Get-Location) "$($slug)_links.json"
+                $outputFile = Join-Path $PSScriptRoot "$($slug)_links.json"
                 
                 if (Test-Path $outputFile -PathType Leaf) {
                     $jsonContent = [System.IO.File]::ReadAllText($outputFile, [System.Text.Encoding]::UTF8)
