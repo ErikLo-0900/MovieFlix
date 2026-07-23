@@ -213,6 +213,10 @@ const formMovieVideoSection = document.getElementById("form-movie-video-section"
 const formSeriesEpisodesSection = document.getElementById("form-series-episodes-section");
 const seasonsContainer = document.getElementById("seasons-container");
 const btnAddSeason = document.getElementById("btn-add-season");
+const cuevanaAutofillUrl = document.getElementById("cuevana-autofill-url");
+const btnCuevanaAutofill = document.getElementById("btn-cuevana-autofill");
+const videoServersHelper = document.getElementById("video-servers-helper");
+const videoServersSelect = document.getElementById("video-servers-select");
 
 const modalSeriesEpisodesSection = document.getElementById("modal-series-episodes-section");
 const seasonSelector = document.getElementById("season-selector");
@@ -1728,6 +1732,10 @@ function openAddVideoModal() {
         formSeriesEpisodesSection.classList.add("hidden");
     }
 
+    if (cuevanaAutofillUrl) cuevanaAutofillUrl.value = "";
+    if (videoServersHelper) videoServersHelper.classList.add("hidden");
+    if (videoServersSelect) videoServersSelect.innerHTML = "";
+
     // Resetear título del modal
     const formTitleEl = document.querySelector(".form-modal-title");
     if (formTitleEl) {
@@ -2022,6 +2030,106 @@ function renderEpisodesList(video, seasonIndex) {
     });
     
     lucide.createIcons();
+}
+
+async function handleCuevanaAutofill() {
+    const url = cuevanaAutofillUrl.value.trim();
+    if (!url) {
+        alert("Por favor introduce una URL válida de Cuevana.");
+        return;
+    }
+
+    btnCuevanaAutofill.disabled = true;
+    btnCuevanaAutofill.innerHTML = `<i data-lucide="loader" class="spin"></i> Cargando...`;
+    lucide.createIcons();
+
+    try {
+        const response = await fetch(`/api/scrape-cuevana?url=${encodeURIComponent(url)}`);
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || "Error al conectar con el rascador del servidor.");
+        }
+
+        const data = await response.json();
+        
+        // 1. Pre-llenar título
+        const cleanTitle = data.title ? data.title.replace(/Ver\s+/i, '').replace(/Online\s*$/i, '').split(' - ')[0].trim() : '';
+        document.getElementById("video-title").value = cleanTitle;
+
+        // 2. Pre-llenar Tipo (Película o Serie)
+        const isSeries = url.toLowerCase().includes("/serie/");
+        videoTypeSelect.value = isSeries ? "series" : "movie";
+        
+        // Disparar evento de cambio para ocultar/mostrar secciones de series
+        videoTypeSelect.dispatchEvent(new Event("change"));
+
+        // Ocultar por defecto el helper de servidores
+        videoServersHelper.classList.add("hidden");
+        videoServersSelect.innerHTML = "";
+
+        if (isSeries) {
+            // Es una serie: poblar Temporadas y Episodios
+            if (data.seasons && data.seasons.length > 0) {
+                formSeasons = data.seasons.map(season => {
+                    return {
+                        name: `Temporada ${season.seasonNumber}`,
+                        episodes: (season.episodes || []).map(ep => {
+                            const bestServer = ep.servers && ep.servers.length > 0 ? ep.servers[0] : null;
+                            const epUrl = bestServer ? bestServer.url : '';
+                            return {
+                                id: "ep_" + Date.now() + "_" + Math.floor(Math.random() * 100000),
+                                name: ep.name || `Capítulo ${ep.episodeNumber}`,
+                                url: epUrl,
+                                duration: "45 min",
+                                isLocalFile: false,
+                                fileName: ""
+                            };
+                        })
+                    };
+                });
+                renderFormSeasons();
+            } else {
+                alert("No se pudieron extraer temporadas de esta serie.");
+            }
+        } else {
+            // Es una película: poblar URL de video
+            if (data.servers && data.servers.length > 0) {
+                // Pre-llenar el primer servidor
+                const firstServer = data.servers[0];
+                document.getElementById("video-url").value = firstServer.url;
+
+                // Cargar otros servidores en el dropdown de ayuda
+                videoServersSelect.innerHTML = "";
+                data.servers.forEach(server => {
+                    const opt = document.createElement("option");
+                    opt.value = server.url;
+                    opt.innerText = server.name || "Servidor";
+                    videoServersSelect.appendChild(opt);
+                });
+
+                // Mostrar el selector de servidores alternativos
+                videoServersHelper.classList.remove("hidden");
+
+                // Configurar el evento de cambio
+                videoServersSelect.onchange = (e) => {
+                    document.getElementById("video-url").value = e.target.value;
+                };
+            } else {
+                alert("No se encontraron servidores de reproducción para esta película.");
+            }
+        }
+
+        // Limpiar input de Cuevana
+        cuevanaAutofillUrl.value = "";
+        alert("¡Campos autocompletados exitosamente! Por favor, verifica y rellena los campos restantes (Año, Duración, Póster, etc.) antes de guardar.");
+
+    } catch (err) {
+        alert("Error al autocompletar: " + err.message);
+    } finally {
+        btnCuevanaAutofill.disabled = false;
+        btnCuevanaAutofill.innerHTML = `<i data-lucide="sparkles"></i> Autocompletar`;
+        lucide.createIcons();
+    }
 }
 
 function handleAddVideoSubmit(e) {
@@ -3368,6 +3476,7 @@ function setupGlobalEvents() {
     addVideoBackdrop.onclick = closeAddVideoModal;
     addVideoCancel.onclick = closeAddVideoModal;
     addVideoForm.onsubmit = handleAddVideoSubmit;
+    btnCuevanaAutofill.onclick = handleCuevanaAutofill;
 
     playerBackBtn.onclick = exitVideoPlayer;
     ctrlPlayBtn.onclick = togglePlayPause;

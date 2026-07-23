@@ -99,6 +99,58 @@ try {
                 continue
             }
 
+            if ($url -eq "/api/scrape-cuevana" -and $request.HttpMethod -eq "GET") {
+                $cuevanaUrl = $request.QueryString["url"]
+                if (-not $cuevanaUrl) {
+                    $response.StatusCode = 400
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $resBytes = [System.Text.Encoding]::UTF8.GetBytes('{"status":"error","message":"Falta el parametro URL"}')
+                    $response.ContentLength64 = $resBytes.Length
+                    $response.OutputStream.Write($resBytes, 0, $resBytes.Length)
+                    $response.Close()
+                    continue
+                }
+
+                # Extraer el slug para ubicar el archivo de salida
+                $urlParts = $cuevanaUrl.Split('/')
+                $slug = $urlParts[$urlParts.Length - 1]
+                if (-not $slug) {
+                    $slug = $urlParts[$urlParts.Length - 2]
+                }
+                
+                # Quitar parametros de consulta si los hay
+                $slug = $slug.Split('?')[0]
+
+                $scriptName = "cuevana-movie-scraper.js"
+                if ($cuevanaUrl -like "*\/serie\/*" -or $cuevanaUrl -like "*\/temporada\/*" -or $cuevanaUrl -like "*\/episodio\/*") {
+                    $scriptName = "cuevana-series-scraper.js"
+                }
+
+                Write-Host "Ejecutando rascador: node $scriptName '$cuevanaUrl'" -ForegroundColor Cyan
+                
+                # Ejecutar el rascador de node y esperar a que termine
+                $process = Start-Process node -ArgumentList "$scriptName", "'$cuevanaUrl'" -NoNewWindow -PassThru -Wait
+                
+                $outputFile = Join-Path (Get-Location) "$($slug)_links.json"
+                
+                if (Test-Path $outputFile -PathType Leaf) {
+                    $jsonContent = [System.IO.File]::ReadAllText($outputFile, [System.Text.Encoding]::UTF8)
+                    Remove-Item $outputFile -ErrorAction SilentlyContinue
+                    
+                    $response.StatusCode = 200
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $resBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonContent)
+                } else {
+                    $response.StatusCode = 500
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $resBytes = [System.Text.Encoding]::UTF8.GetBytes('{"status":"error","message":"No se pudo obtener la informacion del rascador. Verifica la consola del servidor."}')
+                }
+                $response.ContentLength64 = $resBytes.Length
+                $response.OutputStream.Write($resBytes, 0, $resBytes.Length)
+                $response.Close()
+                continue
+            }
+
             if ($url -eq "/api/save-profiles" -and $request.HttpMethod -eq "POST") {
                 $reader = New-Object System.IO.StreamReader($request.InputStream)
                 $body = $reader.ReadToEnd()

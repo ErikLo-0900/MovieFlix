@@ -320,6 +320,12 @@
                 <i data-lucide="x"></i>
             </button>
             <h2 class="form-modal-title">Añadir Nueva Película al Catálogo</h2>
+            <div class="cuevana-autofill-container" style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px dashed rgba(255, 255, 255, 0.1);">
+                <input type="text" id="cuevana-autofill-url" placeholder="Pegar URL de Cuevana (ej. https://cuevana3i.you/pelicula/... o /serie/...)" style="flex-grow: 1; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.9rem;">
+                <button type="button" class="btn btn-secondary" id="btn-cuevana-autofill" style="padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
+                    <i data-lucide="sparkles"></i> Autocompletar
+                </button>
+            </div>
             <form id="add-video-form" class="video-form">
                 <div class="form-group">
                     <label for="video-title">Título de la Película <span class="required">*</span></label>
@@ -388,6 +394,10 @@
                     </div>
                     <div class="tab-content" id="content-video-url">
                         <input type="text" id="video-url" placeholder="Ej. assets/trailers/video.mp4 o URL de internet">
+                        <div class="server-options-helper hidden" id="video-servers-helper" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #aaa;">
+                            <span>Servidores alternativos:</span>
+                            <select id="video-servers-select" style="padding: 0.3rem 0.6rem; border-radius: 4px; background: #222; border: 1px solid #444; color: white; outline: none; cursor: pointer;"></select>
+                        </div>
                     </div>
                     <div class="tab-content hidden" id="content-video-file">
                         <input type="file" id="video-file-input" accept="video/*">
