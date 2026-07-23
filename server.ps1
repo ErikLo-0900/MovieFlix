@@ -118,7 +118,7 @@ try {
                 $slug = $urlParts[$urlParts.Length - 1]
 
                 $scriptName = "cuevana-movie-scraper.js"
-                if ($cuevanaUrl -like "*\/serie\/*" -or $cuevanaUrl -like "*\/temporada\/*" -or $cuevanaUrl -like "*\/episodio\/*") {
+                if ($cuevanaUrl -like "*/serie/*" -or $cuevanaUrl -like "*/temporada/*" -or $cuevanaUrl -like "*/episodio/*") {
                     $scriptName = "cuevana-series-scraper.js"
                 }
 
