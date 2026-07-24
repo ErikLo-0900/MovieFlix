@@ -1431,6 +1431,19 @@ input, select, textarea {
     opacity: 1;
 }
 
+#player-next-episode-top-btn {
+    opacity: 0;
+    transition: opacity 0.3s ease, transform var(--transition-fast);
+}
+
+.video-player-container.controls-active #player-next-episode-top-btn {
+    opacity: 1;
+}
+
+#player-next-episode-top-btn:hover {
+    transform: scale(1.05);
+}
+
 .player-video-title {
     font-size: 1.5rem;
     font-weight: 700;
@@ -2404,6 +2417,12 @@ input, select, textarea {
     box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+}
+
+.episode-row.active-highlight {
+    background-color: rgba(229, 9, 20, 0.1);
+    border-color: rgba(229, 9, 20, 0.4);
+    box-shadow: inset 3px 0 0 var(--primary);
 }
 
 .episode-number {

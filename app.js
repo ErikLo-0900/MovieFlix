@@ -252,6 +252,8 @@ const playerHoverTime = document.getElementById("player-hover-time");
 const ctrlPlayBtn = document.getElementById("ctrl-play-btn");
 const ctrlRewindBtn = document.getElementById("ctrl-rewind-btn");
 const ctrlForwardBtn = document.getElementById("ctrl-forward-btn");
+const ctrlNextEpisodeBtn = document.getElementById("ctrl-next-episode-btn");
+const playerNextEpisodeTopBtn = document.getElementById("player-next-episode-top-btn");
 const ctrlVolumeBtn = document.getElementById("ctrl-volume-btn");
 const ctrlVolumeSlider = document.getElementById("ctrl-volume-slider");
 const timeCurrent = document.getElementById("time-current");
@@ -1502,7 +1504,20 @@ function performSearch() {
 // 9. MODALES: DETALLES, AGREGAR PELÍCULAS
 // ==========================================================================
 
-function openDetailsModal(video) {
+function getEpisodeLocation(series, episodeId) {
+    if (!series || !series.seasons) return { seasonIndex: 0, episodeIndex: 0 };
+    for (let s = 0; s < series.seasons.length; s++) {
+        const season = series.seasons[s];
+        for (let e = 0; e < season.episodes.length; e++) {
+            if (season.episodes[e].id === episodeId) {
+                return { seasonIndex: s, episodeIndex: e };
+            }
+        }
+    }
+    return { seasonIndex: 0, episodeIndex: 0 };
+}
+
+function openDetailsModal(video, openInEpisodesMode = false, highlightEpisodeId = null) {
     currentActiveVideo = video;
     videoDetailsModal.classList.remove("episodes-only-mode");
     
@@ -1543,6 +1558,15 @@ function openDetailsModal(video) {
             const selector = document.getElementById("season-selector");
             if (selector) selector.focus();
         };
+        if (openInEpisodesMode) {
+            videoDetailsModal.classList.add("episodes-only-mode");
+            setTimeout(() => {
+                const wrapper = document.querySelector(".modal-content-wrapper");
+                if (wrapper) wrapper.scrollTop = 0;
+                const selector = document.getElementById("season-selector");
+                if (selector) selector.focus();
+            }, 50);
+        }
     } else {
         detailsEpisodesBtn.classList.add("hidden");
     }
@@ -1647,7 +1671,12 @@ function checkMasterPassword(promptMessage) {
     }
 
     // Configurar temporadas si es serie
-    setupSeasonDropdown(video);
+    let defaultSeasonIndex = 0;
+    if (highlightEpisodeId) {
+        const location = getEpisodeLocation(video, highlightEpisodeId);
+        defaultSeasonIndex = location.seasonIndex;
+    }
+    setupSeasonDropdown(video, defaultSeasonIndex, highlightEpisodeId);
 
     // Renderizar similares
     renderSimilarVideos(video);
@@ -1937,7 +1966,7 @@ function renderFormSeasons() {
     lucide.createIcons();
 }
 
-function setupSeasonDropdown(video) {
+function setupSeasonDropdown(video, defaultSeasonIndex = 0, highlightEpisodeId = null) {
     if (!seasonSelector || !modalSeriesEpisodesSection) return;
     
     if (video.type === "series" && video.seasons && video.seasons.length > 0) {
@@ -1948,6 +1977,9 @@ function setupSeasonDropdown(video) {
             const option = document.createElement("option");
             option.value = index;
             option.innerText = season.name;
+            if (index === defaultSeasonIndex) {
+                option.selected = true;
+            }
             seasonSelector.appendChild(option);
         });
         
@@ -1956,13 +1988,13 @@ function setupSeasonDropdown(video) {
             renderEpisodesList(video, selectedIndex);
         };
         
-        renderEpisodesList(video, 0);
+        renderEpisodesList(video, defaultSeasonIndex, highlightEpisodeId);
     } else {
         modalSeriesEpisodesSection.classList.add("hidden");
     }
 }
 
-function renderEpisodesList(video, seasonIndex) {
+function renderEpisodesList(video, seasonIndex, highlightEpisodeId = null) {
     if (!episodesList) return;
     episodesList.innerHTML = "";
     
@@ -1972,6 +2004,9 @@ function renderEpisodesList(video, seasonIndex) {
     season.episodes.forEach((episode, index) => {
         const row = document.createElement("div");
         row.className = "episode-row";
+        if (highlightEpisodeId && episode.id === highlightEpisodeId) {
+            row.classList.add("active-highlight");
+        }
         row.tabIndex = 0; // Hacer enfocable por teclado/control remoto
         const isEpWatched = isWatched(episode.id);
         row.innerHTML = `
@@ -1993,7 +2028,7 @@ function renderEpisodesList(video, seasonIndex) {
             watchBtn.onclick = (e) => {
                 e.stopPropagation(); // Evitar reproducir al hacer click
                 toggleWatched(episode.id);
-                renderEpisodesList(video, seasonIndex);
+                renderEpisodesList(video, seasonIndex, highlightEpisodeId);
             };
         }
 
@@ -2027,6 +2062,13 @@ function renderEpisodesList(video, seasonIndex) {
         };
         
         episodesList.appendChild(row);
+        
+        if (highlightEpisodeId && episode.id === highlightEpisodeId) {
+            setTimeout(() => {
+                row.focus();
+                row.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 100);
+        }
     });
     
     lucide.createIcons();
@@ -2538,6 +2580,7 @@ function playVideo(video) {
     }
 
     currentActiveVideo = video;
+    updateNextEpisodeButtonVisibility(video);
     
     // REGISTRAR INICIO EN EL HISTORIAL
     recordHistoryStart(video);
@@ -2840,6 +2883,9 @@ function handleVideoEnded() {
 }
 
 function exitVideoPlayer() {
+    const seriesId = currentActiveVideo && currentActiveVideo.seriesId;
+    const episodeId = currentActiveVideo && currentActiveVideo.id;
+
     videoElement.pause();
     videoElement.src = "";
     
@@ -2860,6 +2906,66 @@ function exitVideoPlayer() {
     // Guardar historial al salir y refrescar filas del dashboard
     saveProfiles();
     renderVideoRows();
+
+    // Si era un capítulo de serie, reabrir el menú de capítulos de la serie
+    if (seriesId) {
+        const seriesVideo = getAllVideos().find(v => v.id === seriesId);
+        if (seriesVideo) {
+            openDetailsModal(seriesVideo, true, episodeId);
+        }
+    }
+}
+
+function updateNextEpisodeButtonVisibility(video) {
+    let showNext = false;
+    if (video && video.seriesId) {
+        const next = getNextEpisode(video.seriesId, video.id);
+        if (next) {
+            showNext = true;
+        }
+    }
+    
+    if (ctrlNextEpisodeBtn) {
+        if (showNext) {
+            ctrlNextEpisodeBtn.classList.remove("hidden");
+        } else {
+            ctrlNextEpisodeBtn.classList.add("hidden");
+        }
+    }
+    
+    if (playerNextEpisodeTopBtn) {
+        if (showNext) {
+            playerNextEpisodeTopBtn.classList.remove("hidden");
+        } else {
+            playerNextEpisodeTopBtn.classList.add("hidden");
+        }
+    }
+}
+
+function playNextEpisode() {
+    if (!currentActiveVideo || !currentActiveVideo.seriesId) return;
+    
+    // Guardar progreso del actual
+    updatePlaybackHistory();
+    
+    const next = getNextEpisode(currentActiveVideo.seriesId, currentActiveVideo.id);
+    if (next) {
+        const seriesVideo = getAllVideos().find(v => v.id === currentActiveVideo.seriesId);
+        const nextEpisode = next.episode;
+        const playableEpisode = {
+            id: nextEpisode.id,
+            title: nextEpisode.name,
+            url: nextEpisode.isLocalFile ? (sessionVideoBlobs[nextEpisode.id] || "") : nextEpisode.url,
+            isLocalFile: nextEpisode.isLocalFile,
+            fileName: nextEpisode.fileName,
+            author: seriesVideo ? seriesVideo.author : currentActiveVideo.author,
+            category: seriesVideo ? seriesVideo.category : currentActiveVideo.category,
+            seriesTitle: seriesVideo ? seriesVideo.title : currentActiveVideo.seriesTitle,
+            seriesId: currentActiveVideo.seriesId
+        };
+        
+        playVideo(playableEpisode);
+    }
 }
 
 function togglePlayPause() {
@@ -3508,6 +3614,12 @@ function setupGlobalEvents() {
 
     ctrlRewindBtn.onclick = () => skipTime(-10);
     ctrlForwardBtn.onclick = () => skipTime(10);
+    if (ctrlNextEpisodeBtn) {
+        ctrlNextEpisodeBtn.onclick = playNextEpisode;
+    }
+    if (playerNextEpisodeTopBtn) {
+        playerNextEpisodeTopBtn.onclick = playNextEpisode;
+    }
     
     ctrlVolumeBtn.onclick = toggleMute;
     ctrlVolumeSlider.addEventListener("input", handleVolumeChange);
