@@ -983,6 +983,9 @@ function renderVideoRows(filterType = "all") {
         return;
     }
 
+    // Renderizar sección TOP 5 de agregados recientemente
+    renderTop5Row();
+
     // 0. Fila: Continuar viendo (Historial, aplicando filtro de tipo)
     if (activeProfile && activeProfile.history && activeProfile.history.length > 0) {
         const historyVideos = [];
@@ -4085,6 +4088,174 @@ function spinRoulette() {
         
         lucide.createIcons();
     }, 4100); // Dar un margen para que se note la desaceleración final
+}
+
+// ==========================================================================
+// SECCIÓN DE CONTENIDOS RECIENTES (TOP 5)
+// ==========================================================================
+
+function getVideoTimestamp(video) {
+    if (!video || !video.id) return 0;
+    const idStr = String(video.id);
+    if (idStr.startsWith("cust_")) {
+        const ts = parseInt(idStr.replace("cust_", ""));
+        return isNaN(ts) ? 0 : ts;
+    }
+    const ts = parseInt(idStr);
+    return isNaN(ts) ? 0 : ts;
+}
+
+function renderTop5Row() {
+    let topVideos = getAllVideos();
+    
+    // Si estamos en un canal específico, filtrar por ese canal
+    if (currentPlatformFilter !== "all") {
+        topVideos = topVideos.filter(v => v.platform === currentPlatformFilter);
+    }
+    
+    // Si no hay videos, no mostrar nada
+    if (topVideos.length === 0) return;
+    
+    // Ordenar por fecha de agregación descendente (los más nuevos primero)
+    const sorted = [...topVideos].map((v, idx) => ({ video: v, index: idx }))
+        .sort((a, b) => {
+            const tsA = getVideoTimestamp(a.video);
+            const tsB = getVideoTimestamp(b.video);
+            if (tsA !== tsB) {
+                return tsB - tsA; // El más reciente primero
+            }
+            return b.index - a.index; // Fallback al orden en el array (el último agregado al final)
+        });
+        
+    const top5 = sorted.slice(0, 5).map(item => item.video);
+    
+    // Crear el elemento de sección
+    const section = document.createElement("section");
+    section.className = "top5-section";
+    section.id = "recently-added-section";
+    
+    section.innerHTML = `
+        <h2 class="row-title">
+            <i data-lucide="sparkles"></i> Recién Agregados: TOP 5
+        </h2>
+    `;
+    
+    const container = document.createElement("div");
+    container.className = "top5-section-container";
+    
+    // Destacado (Item #1, más grande en móvil)
+    const featuredDiv = document.createElement("div");
+    featuredDiv.className = "top5-featured";
+    featuredDiv.appendChild(createTop5Card(top5[0], 1));
+    container.appendChild(featuredDiv);
+    
+    // Carrusel para los restantes (Items 2-5)
+    if (top5.length > 1) {
+        const carouselDiv = document.createElement("div");
+        carouselDiv.className = "top5-carousel";
+        for (let i = 1; i < top5.length; i++) {
+            carouselDiv.appendChild(createTop5Card(top5[i], i + 1));
+        }
+        container.appendChild(carouselDiv);
+    }
+    
+    section.appendChild(container);
+    mainContent.appendChild(section);
+}
+
+function createTop5Card(video, rank) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "top5-card-wrapper";
+    
+    // Número del TOP
+    const numberDiv = document.createElement("div");
+    numberDiv.className = "top5-number";
+    numberDiv.innerText = rank;
+    wrapper.appendChild(numberDiv);
+    
+    // Tarjeta contenedora
+    const card = document.createElement("div");
+    card.className = "top5-card";
+    
+    // Renderizar Póster
+    let posterHTML = "";
+    if (video.poster) {
+        posterHTML = `<img src="${video.poster}" class="card-poster" alt="${video.title}" loading="lazy">`;
+    } else {
+        posterHTML = `
+            <div class="card-gradient-bg" style="background: linear-gradient(135deg, ${getRandomHexColor()}, #1e293b)">
+                <span>${video.title}</span>
+            </div>
+        `;
+    }
+    
+    const isFav = activeProfile.favorites.includes(video.id);
+    const isWatchedVideo = isWatched(video.id);
+    
+    let watchedBadgeHTML = "";
+    if (isWatchedVideo) {
+        watchedBadgeHTML = `
+            <div class="card-watched-badge" title="Visto">
+                <i data-lucide="eye"></i>
+            </div>
+        `;
+    }
+    
+    let progressBarHTML = "";
+    if (video.progress !== undefined && video.progress > 0) {
+        const percent = Math.min(Math.max(video.progress * 100, 2), 100);
+        progressBarHTML = `
+            <div class="card-progress-bar">
+                <div class="card-progress-fill" style="width: ${percent}%"></div>
+            </div>
+        `;
+    }
+    
+    card.innerHTML = `
+        ${posterHTML}
+        ${progressBarHTML}
+        ${watchedBadgeHTML}
+        <div class="card-overlay">
+            <div class="card-title">${video.title}</div>
+            <div class="card-meta">
+                <span class="match">${video.match || 90}% Coincidencia</span>
+                <span>${video.year}</span>
+                <span>${video.duration}</span>
+            </div>
+            <div class="card-controls">
+                <button class="card-ctrl-btn play-card-btn" title="Reproducir Tráiler">
+                    <i data-lucide="play"></i>
+                </button>
+                <button class="card-ctrl-btn fav-card-btn ${isFav ? 'active-favorite' : ''}" title="${isFav ? 'Quitar de Mi Lista' : 'Añadir a Mi Lista'}">
+                    <i data-lucide="${isFav ? 'check' : 'plus'}"></i>
+                </button>
+                <button class="card-ctrl-btn info-card-btn" title="Más Información">
+                    <i data-lucide="chevron-down"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Eventos
+    card.querySelector(".play-card-btn").onclick = (e) => {
+        e.stopPropagation();
+        playVideo(video);
+    };
+    
+    card.querySelector(".fav-card-btn").onclick = (e) => {
+        e.stopPropagation();
+        toggleFavorite(video.id);
+    };
+    
+    card.querySelector(".info-card-btn").onclick = (e) => {
+        e.stopPropagation();
+        openDetailsModal(video);
+    };
+    
+    card.onclick = () => openDetailsModal(video);
+    
+    wrapper.appendChild(card);
+    return wrapper;
 }
 
 document.addEventListener("DOMContentLoaded", initApp);

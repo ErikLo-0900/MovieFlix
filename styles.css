@@ -3637,6 +3637,249 @@ input, select, textarea {
     height: 14px;
 }
 
+/* ==================== ESTILOS PARA SECCIÓN TOP 5 RECIENTES ==================== */
+.top5-section {
+    margin-bottom: 2rem;
+    padding: 0 4%;
+}
+
+.top5-section-container {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    overflow-x: auto;
+    /* Barra de scroll personalizada y elegante para PC */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-red) rgba(255, 255, 255, 0.1);
+    padding: 10px 0 25px; /* Espacio extra abajo para sombra y zoom */
+}
+
+.top5-section-container::-webkit-scrollbar {
+    display: block;
+    height: 6px;
+}
+
+.top5-section-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.top5-section-container::-webkit-scrollbar-thumb {
+    background: var(--accent-red);
+    border-radius: 3px;
+}
+
+.top5-section-container::-webkit-scrollbar-thumb:hover {
+    background: #b91c1c;
+}
+
+.top5-featured {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.top5-carousel {
+    display: flex;
+    gap: 24px;
+    flex-shrink: 0;
+}
+
+.top5-card-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.top5-number {
+    font-size: 6rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-right: -22px;
+    z-index: 1;
+    color: #000;
+    /* Efecto Netflix: contorno gris o blanco */
+    -webkit-text-stroke: 4px #777;
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.9);
+    user-select: none;
+    font-family: 'Outfit', Arial, sans-serif;
+    transition: all 0.3s ease;
+}
+
+.top5-card-wrapper:hover .top5-number {
+    color: var(--accent-red);
+    -webkit-text-stroke: 4px var(--accent-red);
+}
+
+.top5-card {
+    width: 240px;
+    height: 135px;
+    background-color: var(--card-bg);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+/* Reutilizar los hovers y overlays de la tarjeta estándar */
+.top5-card:hover {
+    transform: scale(1.1) translateY(-10px);
+    z-index: 20;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+}
+
+.top5-card .card-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.top5-card .card-overlay {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+    padding: 0.8rem;
+    opacity: 0;
+    transition: opacity var(--transition-smooth);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.top5-card:hover .card-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Escalabilidad en pantallas grandes */
+@media (min-width: 1400px) {
+    .top5-section-container {
+        gap: 28px;
+    }
+    .top5-carousel {
+        gap: 28px;
+    }
+    .top5-card {
+        width: 270px;
+        height: 152px;
+    }
+    .top5-number {
+        font-size: 7rem;
+        margin-right: -26px;
+    }
+}
+
+@media (min-width: 1700px) {
+    .top5-section-container {
+        gap: 32px;
+    }
+    .top5-carousel {
+        gap: 32px;
+    }
+    .top5-card {
+        width: 300px;
+        height: 168px;
+    }
+    .top5-number {
+        font-size: 7.5rem;
+        margin-right: -28px;
+    }
+}
+
+/* Escalabilidad en pantallas pequeñas de PC / Tablets (769px a 1199px) */
+@media (min-width: 769px) and (max-width: 1199px) {
+    .top5-section-container {
+        gap: 16px;
+    }
+    .top5-carousel {
+        gap: 16px;
+    }
+    .top5-card {
+        width: 200px;
+        height: 112px;
+    }
+    .top5-number {
+        font-size: 5.5rem;
+        margin-right: -18px;
+        -webkit-text-stroke: 3px #777;
+    }
+}
+
+/* Responsividad para móviles del TOP 5 */
+@media (max-width: 768px) {
+    .top5-section {
+        padding: 0 2%;
+    }
+    
+    .top5-section-container {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 20px;
+        overflow-x: visible;
+        padding-bottom: 10px;
+    }
+    
+    .top5-section-container::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .top5-featured {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .top5-featured .top5-card-wrapper {
+        width: 100%;
+        max-width: 380px;
+        justify-content: center;
+    }
+    
+    .top5-featured .top5-card {
+        width: 100%;
+        height: 180px;
+    }
+    
+    .top5-featured .top5-number {
+        font-size: 8rem;
+        margin-right: -24px;
+    }
+    
+    .top5-carousel {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        overflow-x: auto;
+        padding: 10px 10px 25px;
+        margin: 0 -20px; /* Sangrado hacia los bordes en móviles */
+        padding-left: 20px;
+        padding-right: 20px;
+        scrollbar-width: none;
+    }
+    
+    .top5-carousel::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .top5-carousel .top5-card {
+        width: 220px;
+        height: 124px;
+    }
+    
+    .top5-carousel .top5-number {
+        font-size: 5.5rem;
+        margin-right: -16px;
+        -webkit-text-stroke: 3px #777;
+    }
+}
+
 
 
 
