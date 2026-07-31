@@ -386,8 +386,7 @@ function syncWithServer() {
         return Promise.resolve();
     }
     
-    const timestamp = Date.now();
-    return fetch(`movies_db.json?t=${timestamp}`)
+    return fetch(`movies_db.json`, { cache: 'no-cache' })
         .then(responseMovies => {
             if (responseMovies.status === 200) {
                 return responseMovies.json().then(serverMovies => {
@@ -403,7 +402,7 @@ function syncWithServer() {
             }
         })
         .then(() => {
-            return fetch(`profiles_db.json?t=${timestamp}`);
+            return fetch(`profiles_db.json`, { cache: 'no-cache' });
         })
         .then(responseProfiles => {
             if (responseProfiles.status === 200) {
@@ -957,7 +956,11 @@ function renderVideoRows(filterType = "all") {
 
     if (currentPlatformFilter === "tv") {
         createVideoRow("Canales en Vivo (Televisión)", allVideos, "tv");
-        lucide.createIcons();
+        lucide.createIcons({
+            attrs: { class: 'lucide' },
+            nameAttr: 'data-lucide',
+            node: mainContent
+        });
         return;
     }
 
@@ -979,7 +982,11 @@ function renderVideoRows(filterType = "all") {
             <div class="row-empty-message">${message}</div>
         `;
         mainContent.appendChild(emptyRow);
-        lucide.createIcons();
+        lucide.createIcons({
+            attrs: { class: 'lucide' },
+            nameAttr: 'data-lucide',
+            node: mainContent
+        });
         return;
     }
 
@@ -1038,7 +1045,11 @@ function renderVideoRows(filterType = "all") {
             createVideoRow("Películas de Anime", animeMovies, "film");
         }
         
-        lucide.createIcons();
+        lucide.createIcons({
+            attrs: { class: 'lucide' },
+            nameAttr: 'data-lucide',
+            node: mainContent
+        });
         return;
     }
 
@@ -1064,7 +1075,11 @@ function renderVideoRows(filterType = "all") {
         }
     });
 
-    lucide.createIcons();
+    lucide.createIcons({
+        attrs: { class: 'lucide' },
+        nameAttr: 'data-lucide',
+        node: mainContent
+    });
 }
 
 function createVideoRow(title, videosList, iconName) {
@@ -1091,89 +1106,123 @@ function createVideoRow(title, videosList, iconName) {
     const rowInner = document.createElement("div");
     rowInner.className = "row-inner";
 
-    videosList.forEach(video => {
-        const card = document.createElement("div");
-        card.className = "video-card";
+    // Función para renderizar las tarjetas del carrusel
+    let cardsRendered = false;
+    const renderCards = () => {
+        if (cardsRendered) return;
+        cardsRendered = true;
 
-        // Poster
-        let posterHTML = "";
-        if (video.poster) {
-            posterHTML = `<img src="${video.poster}" class="card-poster" alt="${video.title}" loading="lazy">`;
-        } else {
-            posterHTML = `
-                <div class="card-gradient-bg" style="background: linear-gradient(135deg, ${getRandomHexColor()}, #1e293b)">
-                    <span>${video.title}</span>
+        videosList.forEach(video => {
+            const card = document.createElement("div");
+            card.className = "video-card";
+
+            // Poster
+            let posterHTML = "";
+            if (video.poster) {
+                posterHTML = `<img src="${video.poster}" class="card-poster" alt="${video.title}" loading="lazy">`;
+            } else {
+                posterHTML = `
+                    <div class="card-gradient-bg" style="background: linear-gradient(135deg, ${getRandomHexColor()}, #1e293b)">
+                        <span>${video.title}</span>
+                    </div>
+                `;
+            }
+
+            const isFav = activeProfile.favorites.includes(video.id);
+            const isWatchedVideo = isWatched(video.id);
+
+            let watchedBadgeHTML = "";
+            if (isWatchedVideo) {
+                watchedBadgeHTML = `
+                    <div class="card-watched-badge" title="Visto">
+                        <i data-lucide="eye"></i>
+                    </div>
+                `;
+            }
+
+            let progressBarHTML = "";
+            if (video.progress !== undefined && video.progress > 0) {
+                const percent = Math.min(Math.max(video.progress * 100, 2), 100);
+                progressBarHTML = `
+                    <div class="card-progress-bar">
+                        <div class="card-progress-fill" style="width: ${percent}%"></div>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                ${posterHTML}
+                ${progressBarHTML}
+                ${watchedBadgeHTML}
+                <div class="card-overlay">
+                    <div class="card-title">${video.title}</div>
+                    <div class="card-meta">
+                        <span class="match">${video.match || 90}% Coincidencia</span>
+                        <span>${video.year}</span>
+                        <span>${video.duration}</span>
+                    </div>
+                    <div class="card-controls">
+                        <button class="card-ctrl-btn play-card-btn" title="Reproducir Tráiler">
+                            <i data-lucide="play"></i>
+                        </button>
+                        <button class="card-ctrl-btn fav-card-btn ${isFav ? 'active-favorite' : ''}" title="${isFav ? 'Quitar de Mi Lista' : 'Añadir a Mi Lista'}">
+                            <i data-lucide="${isFav ? 'check' : 'plus'}"></i>
+                        </button>
+                        <button class="card-ctrl-btn info-card-btn" title="Más Información">
+                            <i data-lucide="chevron-down"></i>
+                        </button>
+                    </div>
                 </div>
             `;
-        }
 
-        const isFav = activeProfile.favorites.includes(video.id);
-        const isWatchedVideo = isWatched(video.id);
+            // Eventos en tarjetas
+            card.querySelector(".play-card-btn").onclick = (e) => {
+                e.stopPropagation();
+                playVideo(video);
+            };
 
-        let watchedBadgeHTML = "";
-        if (isWatchedVideo) {
-            watchedBadgeHTML = `
-                <div class="card-watched-badge" title="Visto">
-                    <i data-lucide="eye"></i>
-                </div>
-            `;
-        }
+            card.querySelector(".fav-card-btn").onclick = (e) => {
+                e.stopPropagation();
+                toggleFavorite(video.id);
+            };
 
-        let progressBarHTML = "";
-        if (video.progress !== undefined && video.progress > 0) {
-            const percent = Math.min(Math.max(video.progress * 100, 2), 100);
-            progressBarHTML = `
-                <div class="card-progress-bar">
-                    <div class="card-progress-fill" style="width: ${percent}%"></div>
-                </div>
-            `;
-        }
+            card.querySelector(".info-card-btn").onclick = (e) => {
+                e.stopPropagation();
+                openDetailsModal(video);
+            };
 
-        card.innerHTML = `
-            ${posterHTML}
-            ${progressBarHTML}
-            ${watchedBadgeHTML}
-            <div class="card-overlay">
-                <div class="card-title">${video.title}</div>
-                <div class="card-meta">
-                    <span class="match">${video.match || 90}% Coincidencia</span>
-                    <span>${video.year}</span>
-                    <span>${video.duration}</span>
-                </div>
-                <div class="card-controls">
-                    <button class="card-ctrl-btn play-card-btn" title="Reproducir Tráiler">
-                        <i data-lucide="play"></i>
-                    </button>
-                    <button class="card-ctrl-btn fav-card-btn ${isFav ? 'active-favorite' : ''}" title="${isFav ? 'Quitar de Mi Lista' : 'Añadir a Mi Lista'}">
-                        <i data-lucide="${isFav ? 'check' : 'plus'}"></i>
-                    </button>
-                    <button class="card-ctrl-btn info-card-btn" title="Más Información">
-                        <i data-lucide="chevron-down"></i>
-                    </button>
-                </div>
-            </div>
-        `;
+            card.onclick = () => openDetailsModal(video);
 
-        // Eventos en tarjetas
-        card.querySelector(".play-card-btn").onclick = (e) => {
-            e.stopPropagation();
-            playVideo(video);
-        };
+            rowInner.appendChild(card);
+        });
 
-        card.querySelector(".fav-card-btn").onclick = (e) => {
-            e.stopPropagation();
-            toggleFavorite(video.id);
-        };
+        // Crear iconos Lucide solo para esta fila (más rápido)
+        lucide.createIcons({
+            attrs: {
+                class: 'lucide'
+            },
+            nameAttr: 'data-lucide',
+            node: rowInner
+        });
+    };
 
-        card.querySelector(".info-card-btn").onclick = (e) => {
-            e.stopPropagation();
-            openDetailsModal(video);
-        };
-
-        card.onclick = () => openDetailsModal(video);
-
-        rowInner.appendChild(card);
-    });
+    // Lazy load mediante IntersectionObserver
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    renderCards();
+                    observer.unobserve(row);
+                }
+            });
+        }, {
+            rootMargin: "300px 0px" // Carga las tarjetas 300px antes de entrar al viewport
+        });
+        observer.observe(row);
+    } else {
+        // Fallback para navegadores antiguos sin soporte de IntersectionObserver
+        renderCards();
+    }
 
     // Control deslizador
     btnLeft.onclick = () => {
@@ -1227,7 +1276,13 @@ function updateDetailsFavoriteBtn(videoId) {
         detailsFavoriteBtn.style.backgroundColor = "rgba(0,0,0,0.5)";
         detailsFavoriteBtn.style.borderColor = "rgba(255,255,255,0.5)";
     }
-    lucide.createIcons();
+    lucide.createIcons({
+        attrs: {
+            class: 'lucide'
+        },
+        nameAttr: 'data-lucide',
+        node: detailsFavoriteBtn
+    });
 }
 
 function isWatched(videoId) {
@@ -1271,7 +1326,13 @@ function updateDetailsWatchedBtn(videoId) {
         detailsWatchedBtn.style.backgroundColor = "rgba(0,0,0,0.5)";
         detailsWatchedBtn.style.borderColor = "rgba(255,255,255,0.5)";
     }
-    lucide.createIcons();
+    lucide.createIcons({
+        attrs: {
+            class: 'lucide'
+        },
+        nameAttr: 'data-lucide',
+        node: detailsWatchedBtn
+    });
 }
 
 // ==========================================================================

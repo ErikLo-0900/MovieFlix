@@ -764,6 +764,8 @@ input, select, textarea {
 .video-row {
     margin-bottom: 2.5rem;
     position: relative;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 230px; /* Tamaño estimado de la fila para evitar saltos bruscos en el scroll */
 }
 
 .row-title {
@@ -809,10 +811,14 @@ input, select, textarea {
     flex-shrink: 0;
     transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    /* Forzar aceleración por hardware (GPU) y prevenir parpadeos o textos borrosos */
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: transform, box-shadow;
 }
 
 .video-card:hover {
-    transform: scale(1.15) translateY(-10px);
+    transform: scale(1.15) translateY(-10px) translate3d(0, 0, 0);
     z-index: 20;
     box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }

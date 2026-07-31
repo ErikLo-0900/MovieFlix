@@ -32,18 +32,24 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Estrategia de red con caída a caché (Network First)
+// Estrategia de red con caída a caché (Network First) con soporte para CDNs externos
 self.addEventListener('fetch', (e) => {
-  // Solo interceptar peticiones del mismo origen para no interferir con videos de Drive o APIs externas
-  if (!e.request.url.startsWith(self.location.origin)) {
+  const url = new URL(e.request.url);
+  const isSameOrigin = e.request.url.startsWith(self.location.origin);
+  const isTargetCDN = url.hostname === 'unpkg.com' || 
+                      url.hostname === 'fonts.googleapis.com' || 
+                      url.hostname === 'fonts.gstatic.com';
+
+  // Solo interceptar peticiones del mismo origen o CDNs críticas para no interferir con Google Drive u otras APIs externas
+  if (!isSameOrigin && !isTargetCDN) {
     return;
   }
   
   e.respondWith(
     fetch(e.request)
       .then((response) => {
-        // Guardar copia actualizada en caché
-        if (response.status === 200) {
+        // Guardar copia actualizada en caché para recursos válidos o respuestas opacas de CDNs confiables
+        if (response.status === 200 || (response.type === 'opaque' && isTargetCDN)) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(e.request, responseClone);
