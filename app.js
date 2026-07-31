@@ -392,7 +392,6 @@ function syncWithServer() {
                 return responseMovies.json().then(serverMovies => {
                     if (Array.isArray(serverMovies)) {
                         customVideos = serverMovies;
-                        localStorage.setItem("movieflix_custom_movies", JSON.stringify(customVideos));
                     }
                 });
             } else if (responseMovies.status === 404) {
@@ -466,11 +465,8 @@ function loadFromLocalStorage() {
         saveProfiles();
     }
 
-    // Cargar películas añadidas por usuario (con prefijo de movieflix)
-    const savedCustomVideos = localStorage.getItem("movieflix_custom_movies");
-    if (savedCustomVideos) {
-        customVideos = JSON.parse(savedCustomVideos);
-    }
+    // Limpiar antigua caché pesada del catálogo en localStorage si existiera
+    localStorage.removeItem("movieflix_custom_movies");
 }
 
 function saveProfiles() {
@@ -485,7 +481,6 @@ function saveProfiles() {
 }
 
 function saveCustomVideos() {
-    localStorage.setItem("movieflix_custom_movies", JSON.stringify(customVideos));
     if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
         fetch('/api/save-content', {
             method: 'POST',
