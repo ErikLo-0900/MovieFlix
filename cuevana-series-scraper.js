@@ -3,10 +3,13 @@ const fs = require('fs');
 
 const mainUrl = process.argv[2];
 if (!mainUrl) {
-    console.log("Uso: node cuevana-series-scraper.js <URL_DE_CUEVANA_SERIE>");
-    console.log("Ejemplo: node cuevana-series-scraper.js https://cuevana.you/serie/invencible");
+    console.log("Uso: node cuevana-series-scraper.js <URL_DE_CUEVANA_SERIE> [capitulo_inicio] [capitulo_fin]");
+    console.log("Ejemplo: node cuevana-series-scraper.js https://cuevana.you/serie/invencible 1 10");
     process.exit(1);
 }
+
+const startEp = process.argv[3] ? parseInt(process.argv[3]) : null;
+const endEp = process.argv[4] ? parseInt(process.argv[4]) : null;
 
 const cleanMainUrl = mainUrl.replace(/^['"]|['"]$/g, '').trim();
 const domainMatch = cleanMainUrl.match(/https?:\/\/[a-z0-9.-]+/i);
@@ -195,7 +198,20 @@ async function main() {
                 return numA - numB;
             });
 
-            console.log(`Se encontraron ${uniqueEpisodeUrls.length} episodios en esta temporada.`);
+            let filteredEpisodeUrls = uniqueEpisodeUrls;
+            if (startEp !== null || endEp !== null) {
+                filteredEpisodeUrls = uniqueEpisodeUrls.filter(url => {
+                    const epMatch = url.match(/episodio-\d+x(\d+)/);
+                    if (!epMatch) return true;
+                    const num = parseInt(epMatch[1]);
+                    if (startEp !== null && !isNaN(startEp) && num < startEp) return false;
+                    if (endEp !== null && !isNaN(endEp) && num > endEp) return false;
+                    return true;
+                });
+                console.log(`Se encontraron ${uniqueEpisodeUrls.length} episodios. Filtrando rango del ${startEp || 1} al ${endEp || 'final'}: procesando ${filteredEpisodeUrls.length} episodios.`);
+            } else {
+                console.log(`Se encontraron ${uniqueEpisodeUrls.length} episodios en esta temporada.`);
+            }
             
             const seasonData = {
                 seasonNumber: seasonNum,
@@ -203,7 +219,7 @@ async function main() {
             };
 
             // 3. Procesar cada Episodio
-            for (let epUrl of uniqueEpisodeUrls) {
+            for (let epUrl of filteredEpisodeUrls) {
                 const epNumMatch = epUrl.match(/episodio-\d+x(\d+)/);
                 const epNum = epNumMatch ? parseInt(epNumMatch[1]) : 1;
                 console.log(`   -> Resolviendo Episodio ${seasonNum}x${epNum}...`);

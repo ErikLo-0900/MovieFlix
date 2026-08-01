@@ -21,12 +21,21 @@ const AVATAR_COLORS = {
     slate: "linear-gradient(135deg, #64748b, #334155)"
 };
 
-const DEFAULT_AVATAR_IMAGES = {
-    popcorn: "Portadas/avatar_popcorn.png",
-    glasses: "Portadas/avatar_glasses.png",
-    dragon: "Portadas/avatar_dragon.png",
-    robot: "Portadas/avatar_robot.png"
+const SVG_AVATARS = {
+    popcorn: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#f43f5e" /><path d="M30 40 L35 85 L65 85 L70 40 Z" fill="#ffffff" /><path d="M38 40 L41 85 M50 40 L50 85 M62 40 L59 85" stroke="#f43f5e" stroke-width="4" /><circle cx="35" cy="35" r="10" fill="#facc15" /><circle cx="50" cy="30" r="12" fill="#fef08a" /><circle cx="65" cy="35" r="10" fill="#facc15" /><circle cx="43" cy="38" r="8" fill="#facc15" /><circle cx="57" cy="38" r="8" fill="#facc15" /></svg>`,
+    glasses: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#3b82f6" /><rect x="15" y="38" width="70" height="24" rx="6" fill="#1e293b" /><rect x="20" y="43" width="26" height="14" rx="3" fill="#ef4444" /><rect x="54" y="43" width="26" height="14" rx="3" fill="#06b6d4" /><rect x="46" y="47" width="8" height="6" fill="#1e293b" /><path d="M22 45 L35 45 M56 45 L69 45" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.6" /></svg>`,
+    dragon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#10b981" /><circle cx="35" cy="45" r="8" fill="#ffffff" /><circle cx="65" cy="45" r="8" fill="#ffffff" /><circle cx="37" cy="45" r="4" fill="#111827" /><circle cx="63" cy="45" r="4" fill="#111827" /><circle cx="28" cy="54" r="5" fill="#f43f5e" opacity="0.5" /><circle cx="72" cy="54" r="5" fill="#f43f5e" opacity="0.5" /><path d="M42 52 Q50 48 58 52 L58 58 Q50 62 42 58 Z" fill="#047857" /><circle cx="46" cy="55" r="1.5" fill="#111827" /><circle cx="54" cy="55" r="1.5" fill="#111827" /><polygon points="44,58 48,58 46,63" fill="#ffffff" /><polygon points="52,58 56,58 54,63" fill="#ffffff" /><path d="M30 30 Q25 15 15 22 Q23 27 28 32 Z" fill="#fbbf24" /><path d="M70 30 Q75 15 85 22 Q77 27 72 32 Z" fill="#fbbf24" /></svg>`,
+    robot: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#6366f1" /><rect x="15" y="42" width="6" height="16" rx="2" fill="#fbbf24" /><rect x="79" y="42" width="6" height="16" rx="2" fill="#fbbf24" /><rect x="22" y="28" width="56" height="44" rx="8" fill="#cbd5e1" /><rect x="28" y="34" width="44" height="24" rx="4" fill="#1e293b" /><circle cx="40" cy="46" r="4" fill="#22c55e" /><circle cx="60" cy="46" r="4" fill="#22c55e" /><line x1="38" y1="53" x2="62" y2="53" stroke="#22c55e" stroke-width="2" stroke-linecap="round" /><rect x="47" y="16" width="6" height="12" fill="#94a3b8" /><circle cx="50" cy="14" r="5" fill="#ef4444" /></svg>`,
+    ghost: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#ec4899" /><path d="M30 72 C30 35, 70 35, 70 72 C70 75, 65 75, 60 72 C55 70, 45 70, 40 72 C35 75, 30 75, 30 72 Z" fill="#ffffff" /><circle cx="42" cy="50" r="4.5" fill="#2563eb" /><circle cx="58" cy="50" r="4.5" fill="#2563eb" /><circle cx="44" cy="50" r="2" fill="#000000" /><circle cx="60" cy="50" r="2" fill="#000000" /><circle cx="36" cy="56" r="3" fill="#f43f5e" opacity="0.4" /><circle cx="64" cy="56" r="3" fill="#f43f5e" opacity="0.4" /></svg>`,
+    gamer: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#f59e0b" /><path d="M22 38 C32 38, 42 42, 50 42 C58 42, 68 38, 78 38 C88 38, 88 68, 78 68 C74 68, 68 60, 50 60 C32 60, 26 68, 22 68 C12 68, 12 38, 22 38 Z" fill="#1e293b" /><path d="M32 46 H36 V50 H40 V54 H36 V58 H32 V54 H28 V50 H32 Z" fill="#94a3b8" /><circle cx="64" cy="54" r="3.5" fill="#ef4444" /><circle cx="72" cy="48" r="3.5" fill="#3b82f6" /></svg>`,
+    crown: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#8b5cf6" /><polygon points="20,70 80,70 85,35 65,50 50,25 35,50 15,35" fill="#f59e0b" /><rect x="20" y="65" width="60" height="8" rx="2" fill="#d97706" /><circle cx="50" cy="25" r="3.5" fill="#ef4444" /><circle cx="15" cy="35" r="3" fill="#3b82f6" /><circle cx="85" cy="35" r="3" fill="#3b82f6" /><circle cx="35" cy="69" r="2" fill="#22c55e" /><circle cx="50" cy="69" r="2" fill="#ef4444" /><circle cx="65" cy="69" r="2" fill="#22c55e" /></svg>`,
+    cat: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#14b8a6" /><polygon points="22,48 35,22 45,40" fill="#e2e8f0" /><polygon points="26,45 34,26 41,39" fill="#fda4af" /><polygon points="78,48 65,22 55,40" fill="#e2e8f0" /><polygon points="74,45 66,26 59,39" fill="#fda4af" /><circle cx="50" cy="60" r="28" fill="#e2e8f0" /><ellipse cx="40" cy="55" rx="3.5" ry="5" fill="#1e293b" /><ellipse cx="60" cy="55" rx="3.5" ry="5" fill="#1e293b" /><polygon points="48,63 52,63 50,65" fill="#fda4af" /><path d="M46 67 Q50 70 50 67 Q50 70 54 67" stroke="#1e293b" stroke-width="2" stroke-linecap="round" fill="none" /><circle cx="32" cy="63" r="3" fill="#f43f5e" opacity="0.4" /><circle cx="68" cy="63" r="3" fill="#f43f5e" opacity="0.4" /></svg>`
 };
+
+const DEFAULT_AVATAR_IMAGES = {};
+for (const [key, svg] of Object.entries(SVG_AVATARS)) {
+    DEFAULT_AVATAR_IMAGES[key] = `data:image/svg+xml;base64,${btoa(svg)}`;
+}
 
 // 3. ESTADOS DE LA APLICACIÓN
 let profiles = [];
@@ -2178,12 +2187,19 @@ async function handleCuevanaAutofill() {
         return;
     }
 
+    const startEpVal = document.getElementById("cuevana-start-ep") ? document.getElementById("cuevana-start-ep").value.trim() : "";
+    const endEpVal = document.getElementById("cuevana-end-ep") ? document.getElementById("cuevana-end-ep").value.trim() : "";
+
     btnCuevanaAutofill.disabled = true;
     btnCuevanaAutofill.innerHTML = `<i data-lucide="loader" class="spin"></i> Cargando...`;
     lucide.createIcons();
 
     try {
-        const response = await fetch(`/api/scrape-cuevana?url=${encodeURIComponent(url)}`);
+        let apiUrl = `/api/scrape-cuevana?url=${encodeURIComponent(url)}`;
+        if (startEpVal) apiUrl += `&start=${encodeURIComponent(startEpVal)}`;
+        if (endEpVal) apiUrl += `&end=${encodeURIComponent(endEpVal)}`;
+
+        const response = await fetch(apiUrl);
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
             throw new Error(errData.message || "Error al conectar con el rascador del servidor.");
@@ -2196,7 +2212,7 @@ async function handleCuevanaAutofill() {
         document.getElementById("video-title").value = cleanTitle;
 
         // 2. Pre-llenar Tipo (Película o Serie)
-        const isSeries = url.toLowerCase().includes("/serie/");
+        const isSeries = url.toLowerCase().includes("/serie/") || url.toLowerCase().includes("/temporada/") || url.toLowerCase().includes("/episodio/");
         videoTypeSelect.value = isSeries ? "series" : "movie";
         
         // Disparar evento de cambio para ocultar/mostrar secciones de series
@@ -2227,11 +2243,32 @@ async function handleCuevanaAutofill() {
                     };
                 });
 
-                // Mezclar las nuevas temporadas con las existentes (evita borrar temporadas ya cargadas)
+                // Mezclar las nuevas temporadas con las existentes (evita borrar capítulos ya cargados)
                 newSeasons.forEach(newSeason => {
                     const existingIndex = formSeasons.findIndex(s => s.name.toLowerCase() === newSeason.name.toLowerCase());
                     if (existingIndex !== -1) {
-                        formSeasons[existingIndex] = newSeason;
+                        // Mezclar los episodios individualmente en lugar de sobrescribir toda la temporada
+                        const existingEpisodes = formSeasons[existingIndex].episodes || [];
+                        newSeason.episodes.forEach(newEp => {
+                            const cleanNewName = newEp.name.trim().toLowerCase();
+                            const epIdx = existingEpisodes.findIndex(e => e.name.trim().toLowerCase() === cleanNewName);
+                            if (epIdx !== -1) {
+                                // Sobrescribir episodio existente con la nueva información/links
+                                existingEpisodes[epIdx] = newEp;
+                            } else {
+                                // Agregar nuevo episodio
+                                existingEpisodes.push(newEp);
+                            }
+                        });
+
+                        // Ordenar capítulos numéricamente dentro de la temporada
+                        existingEpisodes.sort((a, b) => {
+                            const numA = parseInt(a.name.match(/\d+/) || 0);
+                            const numB = parseInt(b.name.match(/\d+/) || 0);
+                            return numA - numB;
+                        });
+
+                        formSeasons[existingIndex].episodes = existingEpisodes;
                     } else {
                         formSeasons.push(newSeason);
                     }
@@ -2276,8 +2313,10 @@ async function handleCuevanaAutofill() {
             }
         }
 
-        // Limpiar input de Cuevana
+        // Limpiar input de Cuevana y rango
         cuevanaAutofillUrl.value = "";
+        if (document.getElementById("cuevana-start-ep")) document.getElementById("cuevana-start-ep").value = "";
+        if (document.getElementById("cuevana-end-ep")) document.getElementById("cuevana-end-ep").value = "";
         alert("¡Campos autocompletados exitosamente! Por favor, verifica y rellena los campos restantes (Año, Duración, Póster, etc.) antes de guardar.");
 
     } catch (err) {
@@ -3396,6 +3435,28 @@ function setupGlobalEvents() {
             updateChannelUI("all");
             renderVideoRows();
         };
+    }
+
+    // Renderizar avatares en la cuadrícula de personajes de forma dinámica
+    const imageOptionsGrid = document.getElementById("image-options-grid");
+    if (imageOptionsGrid) {
+        imageOptionsGrid.innerHTML = "";
+        imageOptionsGrid.style.display = "grid";
+        imageOptionsGrid.style.gridTemplateColumns = "repeat(4, 1fr)";
+        imageOptionsGrid.style.gap = "0.5rem";
+        imageOptionsGrid.style.maxWidth = "250px";
+
+        for (const key of Object.keys(DEFAULT_AVATAR_IMAGES)) {
+            const opt = document.createElement("div");
+            opt.className = "avatar-opt";
+            opt.dataset.type = "image";
+            opt.dataset.value = key;
+            opt.style.backgroundImage = `url('${DEFAULT_AVATAR_IMAGES[key]}')`;
+            opt.style.backgroundSize = "cover";
+            opt.style.backgroundPosition = "center";
+            opt.style.borderRadius = "var(--radius-sm)";
+            imageOptionsGrid.appendChild(opt);
+        }
     }
 
     const modalAvatarOpts = document.querySelectorAll("#profile-modal .avatar-opt");

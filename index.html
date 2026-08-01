@@ -320,11 +320,24 @@
                 <i data-lucide="x"></i>
             </button>
             <h2 class="form-modal-title">Añadir Nueva Película al Catálogo</h2>
-            <div class="cuevana-autofill-container" style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px dashed rgba(255, 255, 255, 0.1);">
-                <input type="text" id="cuevana-autofill-url" placeholder="Pegar URL de Cuevana (ej. https://cuevana3i.you/pelicula/... o /serie/...)" style="flex-grow: 1; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.9rem;">
-                <button type="button" class="btn btn-secondary" id="btn-cuevana-autofill" style="padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
-                    <i data-lucide="sparkles"></i> Autocompletar
-                </button>
+            <div class="cuevana-autofill-container" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px dashed rgba(255, 255, 255, 0.1);">
+                <div style="display: flex; gap: 0.75rem; width: 100%;">
+                    <input type="text" id="cuevana-autofill-url" placeholder="Pegar URL de Cuevana (ej. https://cuevana3i.you/pelicula/... o /serie/...)" style="flex-grow: 1; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.9rem;">
+                    <button type="button" class="btn btn-secondary" id="btn-cuevana-autofill" style="padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
+                        <i data-lucide="sparkles"></i> Autocompletar
+                    </button>
+                </div>
+                <div id="cuevana-range-inputs" style="display: flex; gap: 1rem; align-items: center; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6);">
+                    <span style="font-weight: 500;">Opciones de rango (Series):</span>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <label for="cuevana-start-ep">Desde capítulo:</label>
+                        <input type="number" id="cuevana-start-ep" placeholder="Ej. 1" min="1" style="width: 70px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 0.3rem 0.5rem; border-radius: 6px; text-align: center; font-size: 0.85rem;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <label for="cuevana-end-ep">Hasta capítulo:</label>
+                        <input type="number" id="cuevana-end-ep" placeholder="Ej. 10" min="1" style="width: 70px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 0.3rem 0.5rem; border-radius: 6px; text-align: center; font-size: 0.85rem;">
+                    </div>
+                </div>
             </div>
             <form id="add-video-form" class="video-form">
                 <div class="form-group">
@@ -489,10 +502,7 @@
                         <label>Elige un Personaje</label>
                         <div class="avatar-selection-wrapper">
                             <div class="avatar-options-grid" id="image-options-grid" style="grid-template-columns: repeat(4, 1fr); max-width: 250px;">
-                                <div class="avatar-opt" data-type="image" data-value="popcorn" style="background-image: url('Portadas/avatar_popcorn.png'); background-size: cover; background-position: center; border-radius: var(--radius-sm);"></div>
-                                <div class="avatar-opt" data-type="image" data-value="glasses" style="background-image: url('Portadas/avatar_glasses.png'); background-size: cover; background-position: center; border-radius: var(--radius-sm);"></div>
-                                <div class="avatar-opt" data-type="image" data-value="dragon" style="background-image: url('Portadas/avatar_dragon.png'); background-size: cover; background-position: center; border-radius: var(--radius-sm);"></div>
-                                <div class="avatar-opt" data-type="image" data-value="robot" style="background-image: url('Portadas/avatar_robot.png'); background-size: cover; background-position: center; border-radius: var(--radius-sm);"></div>
+                                <!-- Se pueblan dinámicamente con SVGs en app.js para evitar errores 404 y aligerar la carga -->
                             </div>
                         </div>
                     </div>

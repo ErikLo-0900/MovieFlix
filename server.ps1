@@ -101,6 +101,9 @@ try {
 
             if ($url -eq "/api/scrape-cuevana" -and $request.HttpMethod -eq "GET") {
                 $cuevanaUrl = $request.QueryString["url"]
+                $startEp = $request.QueryString["start"]
+                $endEp = $request.QueryString["end"]
+                
                 if (-not $cuevanaUrl) {
                     $response.StatusCode = 400
                     $response.ContentType = "application/json; charset=utf-8"
@@ -118,14 +121,26 @@ try {
                 $slug = $urlParts[$urlParts.Length - 1]
 
                 $scriptName = "cuevana-movie-scraper.js"
+                $argsList = @("$scriptName", "$cuevanaUrl")
+                
                 if ($cuevanaUrl -like "*/serie/*" -or $cuevanaUrl -like "*/temporada/*" -or $cuevanaUrl -like "*/episodio/*") {
                     $scriptName = "cuevana-series-scraper.js"
+                    $argsList[0] = $scriptName
+                    if ($startEp) {
+                        $argsList += "$startEp"
+                    }
+                    if ($endEp) {
+                        if (-not $startEp) {
+                            $argsList += "1" # default start to 1 if end is specified but start is not
+                        }
+                        $argsList += "$endEp"
+                    }
                 }
 
-                Write-Host "Ejecutando rascador: node $scriptName '$cuevanaUrl'" -ForegroundColor Cyan
+                Write-Host "Ejecutando rascador: node $($argsList -join ' ')" -ForegroundColor Cyan
                 
                 # Ejecutar el rascador de node asegurando el directorio de trabajo y esperar a que termine
-                $process = Start-Process node -ArgumentList "$scriptName", "$cuevanaUrl" -WorkingDirectory $PSScriptRoot -NoNewWindow -PassThru -Wait
+                $process = Start-Process node -ArgumentList $argsList -WorkingDirectory $PSScriptRoot -NoNewWindow -PassThru -Wait
                 
                 $outputFile = Join-Path $PSScriptRoot "$($slug)_links.json"
                 
