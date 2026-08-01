@@ -381,10 +381,35 @@ function setupSiteAuthentication() {
     }
 }
 
+function isLocalBackend() {
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    const protocol = window.location.protocol;
+
+    if (protocol === 'file:') {
+        return false;
+    }
+
+    if (hostname.includes("github.io")) {
+        return false;
+    }
+
+    const isLocal = hostname === 'localhost' || 
+                    hostname === '127.0.0.1' || 
+                    hostname.startsWith('192.168.') || 
+                    hostname.startsWith('10.') || 
+                    hostname.startsWith('172.') ||
+                    (port !== '' && port !== '80' && port !== '443');
+
+    return isLocal;
+}
+
 function syncWithServer() {
     if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
         return Promise.resolve();
     }
+    
+    const localBackend = isLocalBackend();
     
     return fetch(`movies_db.json`, { cache: 'no-cache' })
         .then(responseMovies => {
@@ -395,15 +420,25 @@ function syncWithServer() {
                     }
                 });
             } else if (responseMovies.status === 404) {
-                if (customVideos.length > 0) {
+                if (customVideos.length > 0 && localBackend) {
                     saveCustomVideos();
                 }
             }
         })
         .then(() => {
+            // Si no estamos en un servidor local con backend (ej. en GitHub Pages)
+            // y ya existen perfiles locales guardados en localStorage, NO los sobrescribimos
+            // con el profiles_db.json del servidor que viene por defecto/vacío.
+            const savedProfiles = localStorage.getItem("movieflix_profiles");
+            if (!localBackend && savedProfiles) {
+                return Promise.resolve();
+            }
+            
             return fetch(`profiles_db.json`, { cache: 'no-cache' });
         })
         .then(responseProfiles => {
+            if (!responseProfiles) return; // Saltado por tener perfiles locales en GitHub Pages
+            
             if (responseProfiles.status === 200) {
                 return responseProfiles.json().then(serverProfiles => {
                     if (Array.isArray(serverProfiles)) {
@@ -412,7 +447,7 @@ function syncWithServer() {
                     }
                 });
             } else if (responseProfiles.status === 404) {
-                if (profiles.length > 0) {
+                if (profiles.length > 0 && localBackend) {
                     saveProfiles();
                 }
             }
@@ -471,7 +506,9 @@ function loadFromLocalStorage() {
 
 function saveProfiles() {
     localStorage.setItem("movieflix_profiles", JSON.stringify(profiles));
-    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+    
+    // Solo intentar guardar en el servidor si tenemos un backend local disponible
+    if ((window.location.protocol === 'http:' || window.location.protocol === 'https:') && isLocalBackend()) {
         fetch('/api/save-profiles', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -481,7 +518,8 @@ function saveProfiles() {
 }
 
 function saveCustomVideos() {
-    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+    // Solo intentar guardar en el servidor si tenemos un backend local disponible
+    if ((window.location.protocol === 'http:' || window.location.protocol === 'https:') && isLocalBackend()) {
         fetch('/api/save-content', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
